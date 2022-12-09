@@ -11,8 +11,100 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+// Model Class
+class Model3D
+{
+public:
+    std::vector<float> x, y, z;
+    std::vector<float> rotX, rotY, rotZ, theta;
+    std::vector<float> scaleX, scaleY, scaleZ;
+
+    glm::mat4 identity_matrix = glm::mat4(1.0f);
+
+    void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture) {
+
+        unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
+        GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
+        
+
+        std::vector<glm::mat4> transformation_matrix;
+        
+        for (int i = 0; i < x.size(); i++) {
+            transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(x[i], y[i], z[i])));
+            transformation_matrix[i] = glm::rotate(transformation_matrix[i], glm::radians(theta[i]), glm::normalize(glm::vec3(rotX[i], rotY[i], rotZ[i])));
+            transformation_matrix[i] = glm::scale(transformation_matrix[i], glm::vec3(scaleX[i], scaleY[i], scaleZ[i]));
+
+            glBindVertexArray(VAO);
+            glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[i]));
+
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glUniform1i(tex0Address, 0);
+
+            glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
+        }
+    }
+};
+
+class Lighting
+{
+public:
+    glm::vec3 lightDir;
+    glm::vec3 lightColor;
+
+    float ambientStr;
+    glm::vec3 ambientColor;
+
+    float specStr;
+    float specPhong;
+
+    void GeneratePointLight(GLuint shaderProgram, glm::vec3 cameraPos) {
+        unsigned lightDirLoc = glGetUniformLocation(shaderProgram, "lightDirection");
+        glUniform3fv(lightDirLoc, 1, glm::value_ptr(lightDir));
+
+        unsigned lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
+        glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+
+        unsigned int ambientStrLoc = glGetUniformLocation(shaderProgram, "ambientStr");
+        glUniform1f(ambientStrLoc, ambientStr);
+
+        unsigned int ambientColorLoc = glGetUniformLocation(shaderProgram, "ambientColor");
+        glUniform3fv(ambientColorLoc, 1, glm::value_ptr(ambientColor));
+
+        unsigned int cameraPosLoc = glGetUniformLocation(shaderProgram, "cameraPos");
+        glUniform3fv(cameraPosLoc, 1, glm::value_ptr(cameraPos));
+
+        unsigned int specStrLoc = glGetUniformLocation(shaderProgram, "specStr");
+        glUniform1f(specStrLoc, specStr);
+
+        unsigned int specPhongLoc = glGetUniformLocation(shaderProgram, "specPhong");
+        glUniform1f(specPhongLoc, specPhong);
+
+    }
+
+    //void GenerateDirectionLight(GLuint shaderProgram) {
+    //    unsigned lightPosLoc = glGetUniformLocation(shaderProgram, "lightPosDir");
+    //    glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+
+    //    unsigned lightColorLoc = glGetUniformLocation(shaderProgram, "lightColorDir");
+    //    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+
+    //    unsigned int ambientStrLoc = glGetUniformLocation(shaderProgram, "ambientStrDir");
+    //    glUniform1f(ambientStrLoc, ambientStr);
+
+    //    unsigned int ambientColorLoc = glGetUniformLocation(shaderProgram, "ambientColorDir");
+    //    glUniform3fv(ambientColorLoc, 1, glm::value_ptr(ambientColor));
+    //}
+};
+
+Model3D model;
+Lighting lighting;
 float x_mod = 0;
+float y_mod = 0.f;
 float z_mod = -5.f;
+
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
     if (key == GLFW_KEY_D && action == GLFW_PRESS) {
         x_mod += 10.f;
@@ -22,12 +114,12 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
         x_mod -= 10.f;
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        z_mod += 0.2f;
+    if (key == GLFW_KEY_S) {
+        y_mod += 0.2f;
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        z_mod -= 0.2f;
+    if (key == GLFW_KEY_W) {
+        y_mod -= 0.2f;
     }
 }
 
@@ -39,8 +131,8 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    float screenWidth = 1280.f;
-    float screenHeight = 720.f;
+    float screenWidth = 1200.f;
+    float screenHeight = 1200.f;
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(screenWidth, screenHeight, "Jerez - Llorca - Tee: GRAPHIX Machine Project Group 6", NULL, NULL);
@@ -50,19 +142,45 @@ int main(void)
         return -1;
     }
 
-    std::string path = "3D/bunny.obj";
+    std::string path = "3D/bird.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
 
     tinyobj::attrib_t attributes;
 
+    GLfloat UV[]{
+        0.f, 1.f,
+        0.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        0.f, 1.f,
+        0.f, 0.f
+    };
+
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
     //Initialize GLAD
     gladLoadGL();
 
-    /*glViewport(0, 0, screenWidth, screenHeight);*/
+    stbi_set_flip_vertically_on_load(true);
+
+    int img_width, img_height, color_channels;
+    unsigned char* tex_bytes = stbi_load("3D/wood.jpg", &img_width, &img_height, &color_channels, 0);
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_bytes);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(tex_bytes);
+
+    glEnable(GL_DEPTH_TEST);
 
     glfwSetKeyCallback(window, Key_Callback);
 
@@ -101,37 +219,36 @@ int main(void)
         path.c_str()
     );
 
-    std::vector<GLuint> mesh_indices;
+    std::vector<GLfloat> fullVertexData;
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
-        mesh_indices.push_back(
-            shapes[0].mesh.indices[i].vertex_index
-        );
+        tinyobj::index_t vData = shapes[0].mesh.indices[i];
+
+        int vertexIndex = vData.vertex_index * 3;
+        int normalIndex = vData.normal_index * 3;
+        int uvIndex = vData.texcoord_index * 2;
+
+        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3)]);
+        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3) + 1]);
+        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3) + 2]);
+        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3)]);
+        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3) + 1]);
+        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3) + 2]);
+        fullVertexData.push_back(attributes.texcoords[(vData.texcoord_index * 2)]);
+        fullVertexData.push_back(attributes.texcoords[(vData.texcoord_index * 2) + 1]);
     }
 
-    GLfloat vertices[]{
-        0.f, 0.5f, 0.f,
-        -0.5f, -0.5f, 0.f,
-        0.5f, -0.5f, 0.f
-    };
-
-    GLuint indices[]{
-        0, 1, 2 // Triangle 1   
-    };
-
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO;
     //Generate and Assign ID to VAO
     glGenVertexArrays(1, &VAO);
     //Generate and Assign ID to VBO
     glGenBuffers(1, &VBO);
-    //Generate and Assign ID to EBO
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        sizeof(GL_FLOAT) * attributes.vertices.size(), //Indices of the Array
-        &attributes.vertices[0], //array itself
+        sizeof(GL_FLOAT) * fullVertexData.size(), //Indices of the Array
+        fullVertexData.data(), //array itself
         GL_STATIC_DRAW
     );
 
@@ -140,66 +257,76 @@ int main(void)
         3, //XYZ,
         GL_FLOAT,
         GL_FALSE,
-        3 * sizeof(GL_FLOAT),
+        8 * sizeof(GL_FLOAT),
         (void*)0
     );
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * mesh_indices.size(),
-        mesh_indices.data(),
-        GL_STATIC_DRAW
+    GLintptr normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    GLintptr uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
     );
 
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    //3x3 Identity matrix
-    glm::mat3 identity_matrix3 = glm::mat3(1.0f);
-    //4x4 Identity matrix
-    glm::mat4 identity_matrix = glm::mat4(1.0f);
-
-    float x, y, z;
-    x = y = z = 0.0f;
-    z = -5.f;
-
-    float scale_x, scale_y, scale_z;
-    scale_x = scale_y = scale_z = 5.0f;
-
-    float rot_x, rot_y, rot_z;
-    rot_x = rot_y = rot_z = 0.f;
-    rot_y = 1.0f;
-    float theta = 90.f;
-
-    /*glm::mat4 projection_matrix = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);*/
+    model.x.push_back(4.0f);
+    model.y.push_back(-4.0f);
+    model.z.push_back(0.0f);
+    model.rotX.push_back(1.0f);
+    model.rotY.push_back(0.0f);
+    model.rotZ.push_back(0.0f);
+    model.theta.push_back(90.0f);
+    model.scaleX.push_back(0.75f);
+    model.scaleY.push_back(0.75f);
+    model.scaleZ.push_back(0.75f);
 
     glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 100.f);
+
+    lighting.lightDir = glm::vec3(0, -10, 0);
+    lighting.lightColor = glm::vec3(1, 1, 1);
+    lighting.ambientColor = glm::vec3(1, 1, 1);
+    lighting.ambientStr = 0.1f;
+    lighting.specStr = 1.f;
+    lighting.specPhong = 16.0f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        theta = x_mod;
-        z = z_mod;
+        /*theta = x_mod;*/
+        /*theta += 0.01f;*/
+        /*z = z_mod;*/
 
-        glm::vec3 cameraPos = glm::vec3(0, 0, 10.f);
+        glm::vec3 cameraPos = glm::vec3(x_mod, 0, 10.f);
         glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
         glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
-        glm::vec3 cameraCenter = glm::vec3(0, 3.0f, 0);
+        glm::vec3 cameraCenter = glm::vec3(0, 0.0f, 0);
 
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraCenter, worldUp);
 
-        glm::mat4 transformation_matrix = glm::mat4(1.0f);
-        transformation_matrix = glm::translate(transformation_matrix, glm::vec3(x, y, z));
-        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x, scale_y, scale_z));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta), glm::vec3(rot_x, rot_y, rot_z));
+        lighting.GeneratePointLight(shaderProgram, cameraPos);
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
@@ -207,14 +334,10 @@ int main(void)
         unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix));
 
         glUseProgram(shaderProgram);
 
-        glBindVertexArray(VAO);
-        /*glDrawArrays(GL_TRIANGLES, 0, 3);*/
-        glDrawElements(GL_TRIANGLES, mesh_indices.size(), GL_UNSIGNED_INT, 0);
+        model.Draw(shaderProgram, VAO, fullVertexData, texture);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -225,7 +348,6 @@ int main(void)
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
