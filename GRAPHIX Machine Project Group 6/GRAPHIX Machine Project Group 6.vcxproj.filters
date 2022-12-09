@@ -35,7 +35,7 @@
     <CopyFileToFolders Include="Shaders\sample.vert" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\dir_light.vert" />
-    <None Include="Shaders\dir_light.frag" />
+    <None Include="Shaders\skybox.vert" />
+    <None Include="Shaders\skybox.frag" />
   </ItemGroup>
 </Project>
