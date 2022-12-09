@@ -61,16 +61,16 @@ public:
 
     void insertValues() {
         // bird model
-        x.push_back(4.0f);
+        x.push_back(12.0f);
         y.push_back(-4.0f);
         z.push_back(0.0f);
-        rotX.push_back(1.0f);
+        rotX.push_back(0.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
         theta.push_back(270.0f);
-        scaleX.push_back(0.75f);
-        scaleY.push_back(0.75f);
-        scaleZ.push_back(0.75f);
+        scaleX.push_back(0.3f);
+        scaleY.push_back(0.3f);
+        scaleZ.push_back(0.3f);
 
         
         // model 2
@@ -241,7 +241,7 @@ int main(void)
         return -1;
     }
 
-    std::string path[7] = { "3D/bird.obj", "3D/squid.obj", "3D/shark.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj" };
+    std::string path[7] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj" };
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
