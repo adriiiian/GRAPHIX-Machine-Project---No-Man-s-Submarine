@@ -24,15 +24,27 @@ public:
 
     glm::mat4 identity_matrix = glm::mat4(1.0f);
 
-    void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture) {
+    void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture, int i) {
 
         unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
         GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
         
 
         std::vector<glm::mat4> transformation_matrix;
+
+        transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(x[i], y[i], z[i])));
+        transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(theta[i]), glm::normalize(glm::vec3(rotX[i], rotY[i], rotZ[i])));
+        transformation_matrix[0] = glm::scale(transformation_matrix[0], glm::vec3(scaleX[i], scaleY[i], scaleZ[i]));
+
+        glBindVertexArray(VAO);
+        glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[0]));
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(tex0Address, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
         
-        for (int i = 0; i < x.size(); i++) {
+        /*for (int i = 0; i < x.size(); i++) {
             transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(x[i], y[i], z[i])));
             transformation_matrix[i] = glm::rotate(transformation_matrix[i], glm::radians(theta[i]), glm::normalize(glm::vec3(rotX[i], rotY[i], rotZ[i])));
             transformation_matrix[i] = glm::scale(transformation_matrix[i], glm::vec3(scaleX[i], scaleY[i], scaleZ[i]));
@@ -44,7 +56,94 @@ public:
             glUniform1i(tex0Address, 0);
 
             glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
-        }
+        }*/
+    }
+
+    void insertValues() {
+        // bird model
+        x.push_back(4.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        
+        // model 2
+        x.push_back(8.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // model 3
+        x.push_back(12.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // model 4
+        x.push_back(-4.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // model 5
+        x.push_back(-8.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // model 6
+        x.push_back(-12.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // model 7
+        x.push_back(-16.0f);
+        y.push_back(-4.0f);
+        z.push_back(0.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
     }
 };
 
@@ -106,11 +205,11 @@ float y_mod = 0.f;
 float z_mod = -5.f;
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_D) {
         x_mod += 10.f;
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_A) {
         x_mod -= 10.f;
     }
 
@@ -142,7 +241,7 @@ int main(void)
         return -1;
     }
 
-    std::string path = "3D/bird.obj";
+    std::string path[7] = { "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj" };
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
@@ -168,7 +267,7 @@ int main(void)
     stbi_set_flip_vertically_on_load(true);
 
     int img_width, img_height, color_channels;
-    unsigned char* tex_bytes = stbi_load("3D/wood.jpg", &img_width, &img_height, &color_channels, 0);
+    unsigned char* tex_bytes = stbi_load("3D/feather.jpg", &img_width, &img_height, &color_channels, 0);
 
     GLuint texture;
     glGenTextures(1, &texture);
@@ -184,13 +283,13 @@ int main(void)
 
     glfwSetKeyCallback(window, Key_Callback);
 
-    std::fstream vertSrc("Shaders/sample.vert");
+    std::fstream vertSrc("Shaders/models.vert");
     std::stringstream vertBuff;
     vertBuff << vertSrc.rdbuf();
     std::string vertString = vertBuff.str();
     const char* v = vertString.c_str();
 
-    std::fstream fragSrc("Shaders/sample.frag");
+    std::fstream fragSrc("Shaders/models.frag");
     std::stringstream fragBuff;
     fragBuff << fragSrc.rdbuf();
     std::string fragString = fragBuff.str();
@@ -209,6 +308,32 @@ int main(void)
     glAttachShader(shaderProgram, fragmentShader);
 
     glLinkProgram(shaderProgram);
+
+    std::fstream playerVertSrc("Shaders/player.vert");
+    std::stringstream playerVertBuff;
+    playerVertBuff << playerVertSrc.rdbuf();
+    std::string playerVertString = playerVertBuff.str();
+    const char* pv = playerVertString.c_str();
+
+    std::fstream playerFragSrc("Shaders/player.frag");
+    std::stringstream playerFragBuff;
+    playerFragBuff << playerFragSrc.rdbuf();
+    std::string playerFragString = playerFragBuff.str();
+    const char* pf = playerFragString.c_str();
+
+    GLuint playerVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(playerVertexShader, 1, &pv, NULL);
+    glCompileShader(playerVertexShader);
+
+    GLuint playerFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(playerFragmentShader, 1, &pf, NULL);
+    glCompileShader(playerFragmentShader);
+
+    GLuint playerShaderProgram = glCreateProgram();
+    glAttachShader(playerShaderProgram, playerVertexShader);
+    glAttachShader(playerShaderProgram, playerFragmentShader);
+
+    glLinkProgram(playerShaderProgram);
 
     /*
       7--------6
@@ -346,52 +471,70 @@ int main(void)
 
     glLinkProgram(skybox_shaderProg);
 
-    // LOADING OBJECTS
-    bool success = tinyobj::LoadObj(
-        &attributes,
-        &shapes,
-        &materials,
-        &warning,
-        &error,
-        path.c_str()
-    );
+    std::vector<GLfloat> fullVertexData[7];
 
-    std::vector<GLfloat> fullVertexData;
-    for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
-        tinyobj::index_t vData = shapes[0].mesh.indices[i];
+    for (int j = 0; j < 7; j++) {
+        // LOADING OBJECTS
+        bool success = tinyobj::LoadObj(
+            &attributes,
+            &shapes,
+            &materials,
+            &warning,
+            &error,
+            path[j].c_str()
+        );
 
-        int vertexIndex = vData.vertex_index * 3;
-        int normalIndex = vData.normal_index * 3;
-        int uvIndex = vData.texcoord_index * 2;
+        
+        for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
+            tinyobj::index_t vData = shapes[0].mesh.indices[i];
 
-        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3)]);
-        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3) + 1]);
-        fullVertexData.push_back(attributes.vertices[(vData.vertex_index * 3) + 2]);
-        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3)]);
-        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3) + 1]);
-        fullVertexData.push_back(attributes.normals[(vData.normal_index * 3) + 2]);
-        fullVertexData.push_back(attributes.texcoords[(vData.texcoord_index * 2)]);
-        fullVertexData.push_back(attributes.texcoords[(vData.texcoord_index * 2) + 1]);
+            int vertexIndex = vData.vertex_index * 3;
+            int normalIndex = vData.normal_index * 3;
+            int uvIndex = vData.texcoord_index * 2;
+
+            fullVertexData[j].push_back(attributes.vertices[(vData.vertex_index * 3)]);
+            fullVertexData[j].push_back(attributes.vertices[(vData.vertex_index * 3) + 1]);
+            fullVertexData[j].push_back(attributes.vertices[(vData.vertex_index * 3) + 2]);
+            fullVertexData[j].push_back(attributes.normals[(vData.normal_index * 3)]);
+            fullVertexData[j].push_back(attributes.normals[(vData.normal_index * 3) + 1]);
+            fullVertexData[j].push_back(attributes.normals[(vData.normal_index * 3) + 2]);
+            fullVertexData[j].push_back(attributes.texcoords[(vData.texcoord_index * 2)]);
+            fullVertexData[j].push_back(attributes.texcoords[(vData.texcoord_index * 2) + 1]);
+        }
     }
+    
 
-    GLuint VAO, VBO;
-    //Generate and Assign ID to VAO
-    glGenVertexArrays(1, &VAO);
-    //Generate and Assign ID to VBO
-    glGenBuffers(1, &VBO);
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    /*  MODELS VAO AND VBO */
+    GLuint VAO1, VBO1, VAO2, VBO2, VAO3, VBO3, VAO4, VBO4, VAO5, VBO5, VAO6, VBO6, VAO7, VBO7;
+    glGenVertexArrays(1, &VAO1);
+    glGenBuffers(1, &VBO1);
+    glGenVertexArrays(1, &VAO2);
+    glGenBuffers(1, &VBO2);
+    glGenVertexArrays(1, &VAO3);
+    glGenBuffers(1, &VBO3);
+    glGenVertexArrays(1, &VAO4);
+    glGenBuffers(1, &VBO4);
+    glGenVertexArrays(1, &VAO5);
+    glGenBuffers(1, &VBO5);
+    glGenVertexArrays(1, &VAO6);
+    glGenBuffers(1, &VBO6);
+    glGenVertexArrays(1, &VAO7);
+    glGenBuffers(1, &VBO7);
+
+    // OBJ1
+    glBindVertexArray(VAO1);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO1);
     glBufferData(
         GL_ARRAY_BUFFER,
-        sizeof(GL_FLOAT) * fullVertexData.size(), //Indices of the Array
-        fullVertexData.data(), //array itself
+        sizeof(GL_FLOAT) * fullVertexData[0].size(),
+        fullVertexData[0].data(),
         GL_STATIC_DRAW
     );
 
     glVertexAttribPointer(
-        0, //Poosition
-        3, //XYZ,
+        0,
+        3,
         GL_FLOAT,
         GL_FALSE,
         8 * sizeof(GL_FLOAT),
@@ -425,17 +568,334 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // bird model
-    model.x.push_back(4.0f);
-    model.y.push_back(-4.0f);
-    model.z.push_back(0.0f);
-    model.rotX.push_back(1.0f);
-    model.rotY.push_back(0.0f);
-    model.rotZ.push_back(0.0f);
-    model.theta.push_back(90.0f);
-    model.scaleX.push_back(0.75f);
-    model.scaleY.push_back(0.75f);
-    model.scaleZ.push_back(0.75f);
+    // OBJ2
+    glBindVertexArray(VAO2);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT) * fullVertexData[1].size(),
+        fullVertexData[1].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // OBJ3
+    glBindVertexArray(VAO3);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO3);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[2].size(),
+        fullVertexData[2].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // OBJ4
+    glBindVertexArray(VAO4);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO4);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[3].size(),
+        fullVertexData[3].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // OBJ5
+    glBindVertexArray(VAO5);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO5);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[4].size(),
+        fullVertexData[4].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // OBJ6
+    glBindVertexArray(VAO6);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO6);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[5].size(),
+        fullVertexData[5].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // OBJ6
+    glBindVertexArray(VAO7);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO7);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[6].size(),
+        fullVertexData[6].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    /*  PLAYER VAO AND VBO */
+    GLuint PVAO, PVBO;
+    glGenVertexArrays(1, &PVAO);
+    glGenBuffers(1, &PVBO);
+
+    glBindVertexArray(PVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, PVBO);
+    /*glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT) * fullVertexData.size(),
+        fullVertexData.data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    GLintptr normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    GLintptr uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);*/
+
+    model.insertValues();
 
     glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 100.f);
 
@@ -447,7 +907,7 @@ int main(void)
     lighting.specPhong = 16.0f;
 
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
+     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -455,7 +915,7 @@ int main(void)
         /*theta = x_mod;*/
         /*theta += 0.01f;*/
         /*z = z_mod;*/
-
+        
         glm::vec3 cameraPos = glm::vec3(x_mod, 0, 10.f);
         glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
@@ -491,7 +951,7 @@ int main(void)
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
+        
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
@@ -501,11 +961,18 @@ int main(void)
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
+        
         unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        model.Draw(shaderProgram, VAO, fullVertexData, texture);
+        
+        model.Draw(shaderProgram, VAO1, fullVertexData[0], texture, 0);
+        model.Draw(shaderProgram, VAO2, fullVertexData[1], texture, 1);
+        model.Draw(shaderProgram, VAO3, fullVertexData[2], texture, 2);
+        model.Draw(shaderProgram, VAO4, fullVertexData[3], texture, 3);
+        model.Draw(shaderProgram, VAO5, fullVertexData[4], texture, 4);
+        model.Draw(shaderProgram, VAO6, fullVertexData[5], texture, 5);
+        model.Draw(shaderProgram, VAO7, fullVertexData[6], texture, 6);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -514,8 +981,20 @@ int main(void)
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO1);
+    glDeleteBuffers(1, &VBO1);
+    glDeleteVertexArrays(1, &VAO2);
+    glDeleteBuffers(1, &VBO2);
+    glDeleteVertexArrays(1, &VAO3);
+    glDeleteBuffers(1, &VBO3);
+    glDeleteVertexArrays(1, &VAO4);
+    glDeleteBuffers(1, &VBO4);
+    glDeleteVertexArrays(1, &VAO5);
+    glDeleteBuffers(1, &VBO5);
+    glDeleteVertexArrays(1, &VAO6);
+    glDeleteBuffers(1, &VBO6);
+    glDeleteVertexArrays(1, &VAO7);
+    glDeleteBuffers(1, &VBO7);
 
     glfwTerminate();
     return 0;

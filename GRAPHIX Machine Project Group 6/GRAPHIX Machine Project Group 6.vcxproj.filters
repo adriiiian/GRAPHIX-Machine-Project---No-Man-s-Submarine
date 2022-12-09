@@ -31,8 +31,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="Shaders\sample.frag" />
-    <CopyFileToFolders Include="Shaders\sample.vert" />
+    <CopyFileToFolders Include="Shaders\models.frag" />
+    <CopyFileToFolders Include="Shaders\models.vert" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\skybox.vert" />
