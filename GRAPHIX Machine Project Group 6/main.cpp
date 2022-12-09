@@ -77,13 +77,13 @@ public:
         x.push_back(8.0f);
         y.push_back(-4.0f);
         z.push_back(0.0f);
-        rotX.push_back(1.0f);
-        rotY.push_back(0.0f);
+        rotX.push_back(0.0f);
+        rotY.push_back(1.0f);
         rotZ.push_back(0.0f);
-        theta.push_back(270.0f);
-        scaleX.push_back(0.75f);
-        scaleY.push_back(0.75f);
-        scaleZ.push_back(0.75f);
+        theta.push_back(90.0f);
+        scaleX.push_back(0.25f);
+        scaleY.push_back(0.25f);
+        scaleZ.push_back(0.25f);
 
         // model 3
         x.push_back(12.0f);
@@ -93,9 +93,9 @@ public:
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
         theta.push_back(270.0f);
-        scaleX.push_back(0.75f);
-        scaleY.push_back(0.75f);
-        scaleZ.push_back(0.75f);
+        scaleX.push_back(0.05f);
+        scaleY.push_back(0.05f);
+        scaleZ.push_back(0.05f);
 
         // model 4
         x.push_back(-4.0f);
@@ -241,7 +241,7 @@ int main(void)
         return -1;
     }
 
-    std::string path[7] = { "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj" };
+    std::string path[7] = { "3D/bird.obj", "3D/squid.obj", "3D/shark.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj", "3D/bird.obj" };
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
@@ -267,7 +267,7 @@ int main(void)
     stbi_set_flip_vertically_on_load(true);
 
     int img_width, img_height, color_channels;
-    unsigned char* tex_bytes = stbi_load("3D/feather.jpg", &img_width, &img_height, &color_channels, 0);
+    unsigned char* tex_bytes = stbi_load("3D/sq_texture.jpg", &img_width, &img_height, &color_channels, 0);
 
     GLuint texture;
     glGenTextures(1, &texture);
