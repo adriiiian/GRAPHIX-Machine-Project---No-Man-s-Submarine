@@ -215,6 +215,8 @@ float subz = cameraPos.z + F.z * 4;
 bool first = true;
 bool isFirstPerson = true;
 
+float delayTime = 0;
+
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
     if (key == GLFW_KEY_D) {
         x_mod += 10.f;
@@ -235,11 +237,16 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     }
 
     if (key == GLFW_KEY_1) {
-        if (isFirstPerson) {
-            isFirstPerson = false;
+        if ((clock() / CLOCKS_PER_SEC) > delayTime) {
+            if (isFirstPerson) {
+                isFirstPerson = false;
+            }
+            else
+                isFirstPerson = true;
+
+            delayTime = clock() / CLOCKS_PER_SEC + 3;   // 3 secs delay
         }
-        else
-            isFirstPerson = true;
+        
     }
 }
 
