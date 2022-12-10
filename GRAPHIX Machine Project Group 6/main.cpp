@@ -203,14 +203,27 @@ Lighting lighting;
 float x_mod = 0;
 float y_mod = 0.f;
 float z_mod = -5.f;
+float lastX = 300, lastY = 300;
+float pitch = 0.0f, yaw = 0.0f;
+
+glm::vec3 F, R, U;
+glm::vec3 cameraPos;
+float subx = cameraPos.x + F.x * 4;
+float suby = cameraPos.y + F.y * 4;
+float subz = cameraPos.z + F.z * 4;
+
+bool first = true;
+bool isFirstPerson = true;
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
     if (key == GLFW_KEY_D) {
         x_mod += 10.f;
+        subx += 10.f;
     }
 
     if (key == GLFW_KEY_A) {
         x_mod -= 10.f;
+        subx -= 10.f;
     }
 
     if (key == GLFW_KEY_S) {
@@ -220,7 +233,53 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_W) {
         y_mod -= 0.2f;
     }
+
+    if (key == GLFW_KEY_1) {
+        if (isFirstPerson) {
+            isFirstPerson = false;
+        }
+        else
+            isFirstPerson = true;
+    }
 }
+
+void Mouse_Callback(GLFWwindow* window, double xpos, double ypos) {
+    //if mouse enters the window, set last position to current position
+    if (first)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        first = false;
+    }
+
+    //get the offset of the x and y
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    //apply sensitivity to offset
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    //instantiate direction vector
+    glm::vec3 direction;
+    //get the X, Y, and Z values of the direction using euler angles
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    //Normalize direction vector and store to F
+    F = glm::normalize(direction);
+};
 
 int main(void)
 {
@@ -282,6 +341,8 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     glfwSetKeyCallback(window, Key_Callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, Mouse_Callback);
 
     std::fstream vertSrc("Shaders/models.vert");
     std::stringstream vertBuff;
@@ -906,23 +967,53 @@ int main(void)
     lighting.specStr = 1.f;
     lighting.specPhong = 16.0f;
 
+    cameraPos = glm::vec3(x_mod, 0, 10.f);
+    glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+
+    glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
+    glm::vec3 cameraCenter = glm::vec3(0, 0.0f, 0);
+    F = glm::vec3(cameraCenter - cameraPos);
+    F = glm::normalize(F);
     /* Loop until the user closes the window */
      while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        /*theta = x_mod;*/
-        /*theta += 0.01f;*/
-        /*z = z_mod;*/
+        glm::mat4 viewMatrix;
+
+        if (isFirstPerson) {
+
+            cameraPos = glm::vec3(x_mod, 0, 10.f);
+            glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+            R = glm::normalize(glm::cross(F, worldUp));
+            U = glm::normalize(glm::cross(R, F));
+
+            //Construct the Camera Orientation Matrix
+            glm::mat4 cameraOrientation = glm::mat4(1.f);
+
+            cameraOrientation[0][0] = R.x;
+            cameraOrientation[1][0] = R.y;
+            cameraOrientation[2][0] = R.z;
+
+            cameraOrientation[0][1] = U.x;
+            cameraOrientation[1][1] = U.y;
+            cameraOrientation[2][1] = U.z;
+
+            cameraOrientation[0][2] = -F.x;
+            cameraOrientation[1][2] = -F.y;
+            cameraOrientation[2][2] = -F.z;
+
+            viewMatrix = cameraOrientation * cameraPosMatrix;
+
+        }
+        else {
+            //cameraPos = glm::vec3(x_mod, 0, 10.f);
+            //cameraCenter = glm::vec3(subx, suby, subz);
+            //glm::vec3 worldUp2 = glm::vec3(x_mod, 1.0f, 0);
+            //viewMatrix = glm::lookAt(cameraPos, cameraCenter, worldUp2);
+        }
         
-        glm::vec3 cameraPos = glm::vec3(x_mod, 0, 10.f);
-        glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
-
-        glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
-        glm::vec3 cameraCenter = glm::vec3(0, 0.0f, 0);
-
-        glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraCenter, worldUp);
 
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
