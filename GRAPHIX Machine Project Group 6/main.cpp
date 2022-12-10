@@ -200,9 +200,9 @@ public:
 
 Model3D model;
 Lighting lighting;
-float x_mod = 0;
+float x_mod = 0.f;
 float y_mod = 0.f;
-float z_mod = -5.f;
+float z_mod = 0.f;
 float lastX = 300, lastY = 300;
 float pitch = 0.0f, yaw = 0.0f;
 
@@ -217,8 +217,10 @@ bool isFirstPerson = true;
 
 float delayTime = 0;
 
+const float cameraSpeed = 0.5f;
+
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-    if (key == GLFW_KEY_D) {
+    /*if (key == GLFW_KEY_D) {
         x_mod += 10.f;
         subx += 10.f;
     }
@@ -226,17 +228,25 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_A) {
         x_mod -= 10.f;
         subx -= 10.f;
+    }*/
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+        
     }
 
-    if (key == GLFW_KEY_S) {
-        y_mod += 0.2f;
+    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+        
     }
 
-    if (key == GLFW_KEY_W) {
-        y_mod -= 0.2f;
+    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        cameraPos +=  F;
     }
 
-    if (key == GLFW_KEY_1) {
+    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+        cameraPos -= F;
+    }
+
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
         if ((clock() / CLOCKS_PER_SEC) > delayTime) {
             if (isFirstPerson) {
                 isFirstPerson = false;
@@ -974,7 +984,7 @@ int main(void)
     lighting.specStr = 1.f;
     lighting.specPhong = 16.0f;
 
-    cameraPos = glm::vec3(x_mod, 0, 10.f);
+    cameraPos = glm::vec3(0, 0, 10.f);
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
     glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
@@ -991,7 +1001,7 @@ int main(void)
 
         if (isFirstPerson) {
 
-            cameraPos = glm::vec3(x_mod, 0, 10.f);
+            /*cameraPos = glm::vec3(0, 0, 10.f);*/
             glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             R = glm::normalize(glm::cross(F, worldUp));
             U = glm::normalize(glm::cross(R, F));
