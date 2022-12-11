@@ -25,12 +25,8 @@ public:
     glm::mat4 identity_matrix = glm::mat4(1.0f);
 
     glm::vec3 subPos;
-    float pX, pY, pZ;
     float pRotX, pRotY, pRotZ, pThetaX, pThetaY;
     float pScaleX, pScaleY, pScaleZ;
-
-    float lastPx, lastPy;
-    float pitch = 0.0f, yaw = 0.0f;
 
     void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture, int i) {
 
@@ -161,41 +157,11 @@ public:
         scaleZ.push_back(0.75f);
 
         subPos.x = subPos.y = subPos.z = -0.1f;
-        lastPx = lastPy = -0.1f;
         pRotX = pRotY = pRotZ = 0.f;
         pRotX = 1.0f;
         pThetaX = 270.f;
         pThetaY = 0.f;
         pScaleX = pScaleY = pScaleZ = 0.001f;
-    }
-
-    glm::vec3 GetPlayerDirection() {
-
-        float xoffset = subPos.x - lastPx;
-        float yoffset = lastPy - subPos.y;
-
-        lastPx = subPos.x;
-        lastPy = subPos.y;
-
-        const float sensitivity = 0.1f;
-        xoffset *= sensitivity;
-        yoffset *= sensitivity;
-        yaw += xoffset;
-        pitch += yoffset;
-
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        //instantiate direction vector
-        glm::vec3 direction;
-        //get the X, Y, and Z values of the direction using euler angles
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-        return direction;
     }
 };
 
@@ -341,6 +307,9 @@ float subx = cameraPos.x + F.x * 4;
 float suby = cameraPos.y + F.y * 4;
 float subz = cameraPos.z + F.z * 4;
 
+//instantiate direction vector
+glm::vec3 direction;
+
 float pTheta = 0.f;
 
 bool first = true;
@@ -351,38 +320,42 @@ float delayTime = 0;
 const float cameraSpeed = 0.5f;
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
-    /*if (key == GLFW_KEY_D) {
-        x_mod += 10.f;
-        subx += 10.f;
-    }
-
-    if (key == GLFW_KEY_A) {
-        x_mod -= 10.f;
-        subx -= 10.f;
-    }*/
 
     if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        model.pThetaY += 1.f;
+        model.pThetaY += 3.f;
     }
 
     if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        model.pThetaY -= 1.f;
+        model.pThetaY -= 3.f;
     }
 
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        /*cameraPos +=  F;*/
-        //model.subPos += model.GetPlayerDirection();
+        model.subPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
+        model.subPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
+        
+        /*cameraPos.x -= 0.5f * sinf(glm::radians(model.pThetaY));
+        cameraPos.z -= 0.5f * cosf(glm::radians(model.pThetaY));*/
 
-        model.subPos.x -= 1.f * sinf(glm::radians(model.pThetaY));
-        model.subPos.z -= 1.f * cosf(glm::radians(model.pThetaY));
+        cameraPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
+        cameraPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
     }
 
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        /*cameraPos -= F;*/
-        //model.subPos -= model.GetPlayerDirection();
+        model.subPos.x += (0.5f * sinf(glm::radians(model.pThetaY)));
+        model.subPos.z += (0.5f * cosf(glm::radians(model.pThetaY)));
 
-        model.subPos.x += 1.f * sinf(glm::radians(model.pThetaY));
-        model.subPos.z += 1.f * cosf(glm::radians(model.pThetaY));
+        cameraPos.x += (0.5f * sinf(glm::radians(model.pThetaY)));
+        cameraPos.z += (0.5f * cosf(glm::radians(model.pThetaY)));
+    }
+
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS && model.subPos.y < 0.1f) {
+        model.subPos.y += 0.1f;
+        cameraPos.y += 0.1f;
+    }
+
+    if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        model.subPos.y -= 0.1f;
+        cameraPos.y -= 0.1f;
     }
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
@@ -427,8 +400,6 @@ void Mouse_Callback(GLFWwindow* window, double xpos, double ypos) {
     if (pitch < -89.0f)
         pitch = -89.0f;
 
-    //instantiate direction vector
-    glm::vec3 direction;
     //get the X, Y, and Z values of the direction using euler angles
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
@@ -593,11 +564,11 @@ int main(void)
             glTexImage2D(
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                 0,
-                GL_RGB,
+                GL_RGBA,
                 w,
                 h,
                 0,
-                GL_RGB,
+                GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 data
             );
@@ -1037,20 +1008,22 @@ int main(void)
 
     glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 100.f);
 
-    lighting.lightDir = glm::vec3(0, -1000, 0);
+    lighting.lightDir = glm::vec3(0, -1, 0);
     lighting.lightColor = glm::vec3(1, 1, 1);
     lighting.ambientColor = glm::vec3(1, 1, 1);
     lighting.ambientStr = 0.1f;
-    lighting.specStr = 1.f;
+    lighting.specStr = 0.1f;
     lighting.specPhong = 16.0f;
 
-    cameraPos = glm::vec3(0, 0, 10.f);
+    cameraPos = glm::vec3(0.f, 3.f, 8.f);
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
     glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
     glm::vec3 cameraCenter = glm::vec3(0, 0.0f, 0);
     F = glm::vec3(cameraCenter - cameraPos);
     F = glm::normalize(F);
+
+    direction = glm::vec3(0.0f, 0.0f, 0.0f);
     /* Loop until the user closes the window */
      while (!glfwWindowShouldClose(window))
     {
@@ -1059,15 +1032,15 @@ int main(void)
 
         glm::mat4 viewMatrix;
 
+        //Construct the Camera Orientation Matrix
+        glm::mat4 cameraOrientation = glm::mat4(1.f);
+
         if (isFirstPerson) {
 
             /*cameraPos = glm::vec3(0, 0, 10.f);*/
-            glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+            cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             R = glm::normalize(glm::cross(F, worldUp));
             U = glm::normalize(glm::cross(R, F));
-
-            //Construct the Camera Orientation Matrix
-            glm::mat4 cameraOrientation = glm::mat4(1.f);
 
             cameraOrientation[0][0] = R.x;
             cameraOrientation[1][0] = R.y;
@@ -1082,6 +1055,8 @@ int main(void)
             cameraOrientation[2][2] = -F.z;
 
             viewMatrix = cameraOrientation * cameraPosMatrix;
+
+            /*viewMatrix = glm::lookAt(cameraPos, F, glm::vec3(0.0f, 1.0f, 0.0f));*/
 
         }
         else {
@@ -1142,6 +1117,8 @@ int main(void)
         model.Draw(shaderProgram, VAO7, fullVertexData[6], texture7, 6);
 
         glUseProgram(playerShaderProgram);
+
+        viewMatrix = cameraOrientation * cameraPosMatrix;
 
         lighting.GenerateDirLight(playerShaderProgram, cameraPos);
 
