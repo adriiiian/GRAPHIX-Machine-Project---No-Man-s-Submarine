@@ -316,7 +316,7 @@ float lastX = 300, lastY = 300;
 float pitch = 0.0f, yaw = 0.0f;
 
 glm::vec3 F, R, U;
-glm::vec3 cameraPos;
+glm::vec3 cameraPos, cameraCenter;
 float subx = cameraPos.x + F.x * 4;
 float suby = cameraPos.y + F.y * 4;
 float subz = cameraPos.z + F.z * 4;
@@ -379,8 +379,6 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
                 isThirdPerson = true;
                 cameraPos.y = cameraPos.y + 3.0f;
             }
-                
-
             delayTime = clock() / CLOCKS_PER_SEC + 3;   // 3 secs delay
         }
         
@@ -1147,10 +1145,10 @@ int main(void)
 
         }
         else {
-            cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
-            //F = glm::vec3(model.subPos.x - (1.0f * sinf(glm::radians(model.pThetaY))), model.subPos.y, model.subPos.z - (1.0f * cosf(glm::radians(model.pThetaY))));
-            F = glm::vec3(model.subPos.x, model.subPos.y, model.subPos.z);
+            cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+            F = glm::vec3(-sinf(glm::radians(model.pThetaY)), 0, -cosf(glm::radians(model.pThetaY)));
+            //F = glm::vec3(model.subPos.x, model.subPos.y, model.subPos.z);
             F = glm::normalize(F);
             R = glm::normalize(glm::cross(F, worldUp));
             U = glm::normalize(glm::cross(R, F));
@@ -1205,6 +1203,8 @@ int main(void)
         glUseProgram(shaderProgram);
 
         lighting.GenerateLight(shaderProgram, cameraPos);
+
+        viewMatrix = cameraOrientation * cameraPosMatrix;
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
