@@ -24,6 +24,10 @@ public:
 
     glm::mat4 identity_matrix = glm::mat4(1.0f);
 
+    float pX, pY, pZ;
+    float pRotX, pRotY, pRotZ, pTheta;
+    float pScaleX, pScaleY, pScaleZ;
+
     void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture, int i) {
 
         unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
@@ -43,28 +47,34 @@ public:
         glUniform1i(tex0Address, 0);
 
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
-        
-        /*for (int i = 0; i < x.size(); i++) {
-            transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(x[i], y[i], z[i])));
-            transformation_matrix[i] = glm::rotate(transformation_matrix[i], glm::radians(theta[i]), glm::normalize(glm::vec3(rotX[i], rotY[i], rotZ[i])));
-            transformation_matrix[i] = glm::scale(transformation_matrix[i], glm::vec3(scaleX[i], scaleY[i], scaleZ[i]));
+    }
 
-            glBindVertexArray(VAO);
-            glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[i]));
+    void DrawPlayer(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture) {
+        unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
+        GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
 
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glUniform1i(tex0Address, 0);
 
-            glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
-        }*/
+        std::vector<glm::mat4> transformation_matrix;
+
+        transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(pX, pY, pZ)));
+        transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(pTheta), glm::normalize(glm::vec3(pRotX, pRotY, pRotZ)));
+        transformation_matrix[0] = glm::scale(transformation_matrix[0], glm::vec3(pScaleX, pScaleY, pScaleZ));
+
+        glBindVertexArray(VAO);
+        glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[0]));
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(tex0Address, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
     }
 
     void insertValues() {
-        // bird model
-        x.push_back(12.0f);
-        y.push_back(-4.0f);
-        z.push_back(0.0f);
-        rotX.push_back(0.0f);
+        // model 1
+        x.push_back(-25.0f);
+        y.push_back(-15.0f);
+        z.push_back(3.0f);
+        rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
         theta.push_back(270.0f);
@@ -74,9 +84,9 @@ public:
 
         
         // model 2
-        x.push_back(8.0f);
-        y.push_back(-4.0f);
-        z.push_back(0.0f);
+        x.push_back(18.0f);
+        y.push_back(-9.0f);
+        z.push_back(5.0f);
         rotX.push_back(0.0f);
         rotY.push_back(1.0f);
         rotZ.push_back(0.0f);
@@ -86,9 +96,9 @@ public:
         scaleZ.push_back(0.25f);
 
         // model 3
-        x.push_back(12.0f);
-        y.push_back(-4.0f);
-        z.push_back(0.0f);
+        x.push_back(20.0f);
+        y.push_back(-15.0f);
+        z.push_back(10.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -98,8 +108,8 @@ public:
         scaleZ.push_back(0.05f);
 
         // model 4
-        x.push_back(-4.0f);
-        y.push_back(-4.0f);
+        x.push_back(-25.0f);
+        y.push_back(-30.0f);
         z.push_back(0.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
@@ -110,9 +120,9 @@ public:
         scaleZ.push_back(0.75f);
 
         // model 5
-        x.push_back(-8.0f);
-        y.push_back(-4.0f);
-        z.push_back(0.0f);
+        x.push_back(8.0f);
+        y.push_back(-30.0f);
+        z.push_back(-5.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -122,8 +132,8 @@ public:
         scaleZ.push_back(0.75f);
 
         // model 6
-        x.push_back(-12.0f);
-        y.push_back(-4.0f);
+        x.push_back(35.0f);
+        y.push_back(-30.0f);
         z.push_back(0.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
@@ -135,7 +145,7 @@ public:
 
         // model 7
         x.push_back(-16.0f);
-        y.push_back(-4.0f);
+        y.push_back(-8.0f);
         z.push_back(0.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
@@ -144,6 +154,12 @@ public:
         scaleX.push_back(0.75f);
         scaleY.push_back(0.75f);
         scaleZ.push_back(0.75f);
+
+        pX = pY = pZ = 0.f;
+        pRotX = pRotY = pRotZ = 0.f;
+        pRotX = 1.0f;
+        pTheta = 270.f;
+        pScaleX = pScaleY = pScaleZ = 0.001f;
     }
 };
 
@@ -159,7 +175,7 @@ public:
     float specStr;
     float specPhong;
 
-    void GeneratePointLight(GLuint shaderProgram, glm::vec3 cameraPos) {
+    void GenerateDirLight(GLuint shaderProgram, glm::vec3 cameraPos) {
         unsigned lightDirLoc = glGetUniformLocation(shaderProgram, "lightDirection");
         glUniform3fv(lightDirLoc, 1, glm::value_ptr(lightDir));
 
@@ -198,8 +214,43 @@ public:
     //}
 };
 
+class Shaders {
+public:
+
+    GLuint GenerateShaders(std::string filename) {
+        std::fstream vertSrc("Shaders/" + filename + ".vert");
+        std::stringstream vertBuff;
+        vertBuff << vertSrc.rdbuf();
+        std::string vertString = vertBuff.str();
+        const char* v = vertString.c_str();
+
+        std::fstream fragSrc("Shaders/" + filename + ".frag");
+        std::stringstream fragBuff;
+        fragBuff << fragSrc.rdbuf();
+        std::string fragString = fragBuff.str();
+        const char* f = fragString.c_str();
+
+        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &v, NULL);
+        glCompileShader(vertexShader);
+
+        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &f, NULL);
+        glCompileShader(fragmentShader);
+
+        GLuint shaderProgram = glCreateProgram();
+        glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, fragmentShader);
+
+        glLinkProgram(shaderProgram);
+
+        return shaderProgram;
+    }
+    
+};
 Model3D model;
 Lighting lighting;
+Shaders shaders;
 float x_mod = 0.f;
 float y_mod = 0.f;
 float z_mod = 0.f;
@@ -317,7 +368,7 @@ int main(void)
         return -1;
     }
 
-    std::string path[7] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj" };
+    std::string path[8] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj", "3D/submarine.obj"};
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
@@ -361,57 +412,9 @@ int main(void)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, Mouse_Callback);
 
-    std::fstream vertSrc("Shaders/models.vert");
-    std::stringstream vertBuff;
-    vertBuff << vertSrc.rdbuf();
-    std::string vertString = vertBuff.str();
-    const char* v = vertString.c_str();
+    GLuint shaderProgram = shaders.GenerateShaders("models");
 
-    std::fstream fragSrc("Shaders/models.frag");
-    std::stringstream fragBuff;
-    fragBuff << fragSrc.rdbuf();
-    std::string fragString = fragBuff.str();
-    const char* f = fragString.c_str();
-
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &v, NULL);
-    glCompileShader(vertexShader);
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &f, NULL);
-    glCompileShader(fragmentShader);
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-
-    glLinkProgram(shaderProgram);
-
-    std::fstream playerVertSrc("Shaders/player.vert");
-    std::stringstream playerVertBuff;
-    playerVertBuff << playerVertSrc.rdbuf();
-    std::string playerVertString = playerVertBuff.str();
-    const char* pv = playerVertString.c_str();
-
-    std::fstream playerFragSrc("Shaders/player.frag");
-    std::stringstream playerFragBuff;
-    playerFragBuff << playerFragSrc.rdbuf();
-    std::string playerFragString = playerFragBuff.str();
-    const char* pf = playerFragString.c_str();
-
-    GLuint playerVertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(playerVertexShader, 1, &pv, NULL);
-    glCompileShader(playerVertexShader);
-
-    GLuint playerFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(playerFragmentShader, 1, &pf, NULL);
-    glCompileShader(playerFragmentShader);
-
-    GLuint playerShaderProgram = glCreateProgram();
-    glAttachShader(playerShaderProgram, playerVertexShader);
-    glAttachShader(playerShaderProgram, playerFragmentShader);
-
-    glLinkProgram(playerShaderProgram);
+    GLuint playerShaderProgram = shaders.GenerateShaders("player");
 
     /*
       7--------6
@@ -519,39 +522,11 @@ int main(void)
     }
     stbi_set_flip_vertically_on_load(true);
 
-    // skybox fragment shader
-    //Vertex Shader
-    std::fstream skybox_vertSrc("Shaders/skybox.vert");
-    std::stringstream skybox_vertBuff;
-    skybox_vertBuff << skybox_vertSrc.rdbuf();
-    std::string skybox_vertString = skybox_vertBuff.str();
-    const char* skybox_v = skybox_vertString.c_str();
+    GLuint skybox_shaderProg = shaders.GenerateShaders("skybox");
+    
+    std::vector<GLfloat> fullVertexData[8];
 
-    //Fragment shader
-    std::fstream skybox_fragSrc("Shaders/skybox.frag");
-    std::stringstream skybox_fragBuff;
-    skybox_fragBuff << skybox_fragSrc.rdbuf();
-    std::string skybox_fragString = skybox_fragBuff.str();
-    const char* skybox_f = skybox_fragString.c_str();
-
-    GLuint skybox_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(skybox_vertexShader, 1, &skybox_v, NULL);
-    glCompileShader(skybox_vertexShader);
-
-    GLuint skybox_fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(skybox_fragShader, 1, &skybox_f, NULL);
-    glCompileShader(skybox_fragShader);
-
-
-    GLuint skybox_shaderProg = glCreateProgram();
-    glAttachShader(skybox_shaderProg, skybox_vertexShader);
-    glAttachShader(skybox_shaderProg, skybox_fragShader);
-
-    glLinkProgram(skybox_shaderProg);
-
-    std::vector<GLfloat> fullVertexData[7];
-
-    for (int j = 0; j < 7; j++) {
+    for (int j = 0; j < 8; j++) {
         // LOADING OBJECTS
         bool success = tinyobj::LoadObj(
             &attributes,
@@ -930,10 +905,10 @@ int main(void)
 
     glBindVertexArray(PVAO);
     glBindBuffer(GL_ARRAY_BUFFER, PVBO);
-    /*glBufferData(
+    glBufferData(
         GL_ARRAY_BUFFER,
-        sizeof(GL_FLOAT) * fullVertexData.size(),
-        fullVertexData.data(),
+        sizeof(GL_FLOAT) * fullVertexData[7].size(),
+        fullVertexData[7].data(),
         GL_STATIC_DRAW
     );
 
@@ -946,7 +921,7 @@ int main(void)
         (void*)0
     );
 
-    GLintptr normPtr = 3 * sizeof(GLfloat);
+    normPtr = 3 * sizeof(GLfloat);
     glVertexAttribPointer(
         1,
         3,
@@ -956,7 +931,7 @@ int main(void)
         (void*)normPtr
     );
 
-    GLintptr uvPtr = 6 * sizeof(GLfloat);
+    uvPtr = 6 * sizeof(GLfloat);
     glVertexAttribPointer(
         2,
         2,
@@ -971,7 +946,7 @@ int main(void)
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);*/
+    glBindVertexArray(0);
 
     model.insertValues();
 
@@ -1065,7 +1040,7 @@ int main(void)
 
         glUseProgram(shaderProgram);
 
-        lighting.GeneratePointLight(shaderProgram, cameraPos);
+        lighting.GenerateDirLight(shaderProgram, cameraPos);
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
@@ -1073,7 +1048,6 @@ int main(void)
         unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        
         model.Draw(shaderProgram, VAO1, fullVertexData[0], texture, 0);
         model.Draw(shaderProgram, VAO2, fullVertexData[1], texture, 1);
         model.Draw(shaderProgram, VAO3, fullVertexData[2], texture, 2);
@@ -1081,6 +1055,18 @@ int main(void)
         model.Draw(shaderProgram, VAO5, fullVertexData[4], texture, 4);
         model.Draw(shaderProgram, VAO6, fullVertexData[5], texture, 5);
         model.Draw(shaderProgram, VAO7, fullVertexData[6], texture, 6);
+
+        glUseProgram(playerShaderProgram);
+
+        lighting.GenerateDirLight(playerShaderProgram, cameraPos);
+
+        unsigned int pProjectionLoc = glGetUniformLocation(playerShaderProgram, "projection");
+        glUniformMatrix4fv(pProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+        unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
+        glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+        model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
