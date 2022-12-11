@@ -332,9 +332,6 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
         model.subPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
         model.subPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
-        
-        /*cameraPos.x -= 0.5f * sinf(glm::radians(model.pThetaY));
-        cameraPos.z -= 0.5f * cosf(glm::radians(model.pThetaY));*/
 
         cameraPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
         cameraPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
@@ -1015,7 +1012,7 @@ int main(void)
     lighting.specStr = 0.1f;
     lighting.specPhong = 16.0f;
 
-    cameraPos = glm::vec3(0.f, 3.f, 8.f);
+    cameraPos = glm::vec3(0.f, 3.f, 0.f);
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
     glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
