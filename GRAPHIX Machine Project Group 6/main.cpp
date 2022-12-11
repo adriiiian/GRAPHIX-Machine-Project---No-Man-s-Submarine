@@ -24,9 +24,13 @@ public:
 
     glm::mat4 identity_matrix = glm::mat4(1.0f);
 
+    glm::vec3 subPos;
     float pX, pY, pZ;
-    float pRotX, pRotY, pRotZ, pTheta;
+    float pRotX, pRotY, pRotZ, pThetaX, pThetaY;
     float pScaleX, pScaleY, pScaleZ;
+
+    float lastPx, lastPy;
+    float pitch = 0.0f, yaw = 0.0f;
 
     void Draw(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture, int i) {
 
@@ -56,8 +60,9 @@ public:
 
         std::vector<glm::mat4> transformation_matrix;
 
-        transformation_matrix.push_back(glm::translate(identity_matrix, glm::vec3(pX, pY, pZ)));
-        transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(pTheta), glm::normalize(glm::vec3(pRotX, pRotY, pRotZ)));
+        transformation_matrix.push_back(glm::translate(identity_matrix, subPos));
+        transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(pThetaX), glm::normalize(glm::vec3(1, 0, 0)));
+        transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(pThetaY), glm::normalize(glm::vec3(0, 0, 1)));
         transformation_matrix[0] = glm::scale(transformation_matrix[0], glm::vec3(pScaleX, pScaleY, pScaleZ));
 
         glBindVertexArray(VAO);
@@ -115,9 +120,9 @@ public:
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
         theta.push_back(270.0f);
-        scaleX.push_back(0.75f);
-        scaleY.push_back(0.75f);
-        scaleZ.push_back(0.75f);
+        scaleX.push_back(0.35f);
+        scaleY.push_back(0.35f);
+        scaleZ.push_back(0.35f);
 
         // model 5
         x.push_back(8.0f);
@@ -155,11 +160,42 @@ public:
         scaleY.push_back(0.75f);
         scaleZ.push_back(0.75f);
 
-        pX = pY = pZ = 0.f;
+        subPos.x = subPos.y = subPos.z = -0.1f;
+        lastPx = lastPy = -0.1f;
         pRotX = pRotY = pRotZ = 0.f;
         pRotX = 1.0f;
-        pTheta = 270.f;
+        pThetaX = 270.f;
+        pThetaY = 0.f;
         pScaleX = pScaleY = pScaleZ = 0.001f;
+    }
+
+    glm::vec3 GetPlayerDirection() {
+
+        float xoffset = subPos.x - lastPx;
+        float yoffset = lastPy - subPos.y;
+
+        lastPx = subPos.x;
+        lastPy = subPos.y;
+
+        const float sensitivity = 0.1f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        //instantiate direction vector
+        glm::vec3 direction;
+        //get the X, Y, and Z values of the direction using euler angles
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+        return direction;
     }
 };
 
@@ -248,9 +284,51 @@ public:
     }
     
 };
+
+class Textures {
+public:
+
+    GLuint GenerateTexture(std::string filename, bool isJpg) {
+        GLuint texture;
+        if (isJpg) {
+            int img_width, img_height, color_channels;
+            std::string file = "3D/" + filename + ".jpg";
+            unsigned char* tex_bytes = stbi_load(file.data(), &img_width, &img_height, &color_channels, 0);
+
+            glGenTextures(1, &texture);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_bytes);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+            stbi_image_free(tex_bytes);
+        }
+        else {
+            int img_width, img_height, color_channels;
+            std::string file = "3D/" + filename + ".png";
+            unsigned char* tex_bytes = stbi_load(file.data(), &img_width, &img_height, &color_channels, 0);
+
+            glGenTextures(1, &texture);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_bytes);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+            stbi_image_free(tex_bytes);
+        }
+        
+
+        return texture;
+    }
+    
+};
+
 Model3D model;
 Lighting lighting;
 Shaders shaders;
+Textures textures;
 float x_mod = 0.f;
 float y_mod = 0.f;
 float z_mod = 0.f;
@@ -262,6 +340,8 @@ glm::vec3 cameraPos;
 float subx = cameraPos.x + F.x * 4;
 float suby = cameraPos.y + F.y * 4;
 float subz = cameraPos.z + F.z * 4;
+
+float pTheta = 0.f;
 
 bool first = true;
 bool isFirstPerson = true;
@@ -282,19 +362,27 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     }*/
 
     if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        
+        model.pThetaY += 1.f;
     }
 
     if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        
+        model.pThetaY -= 1.f;
     }
 
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        cameraPos +=  F;
+        /*cameraPos +=  F;*/
+        //model.subPos += model.GetPlayerDirection();
+
+        model.subPos.x -= 1.f * sinf(glm::radians(model.pThetaY));
+        model.subPos.z -= 1.f * cosf(glm::radians(model.pThetaY));
     }
 
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        cameraPos -= F;
+        /*cameraPos -= F;*/
+        //model.subPos -= model.GetPlayerDirection();
+
+        model.subPos.x += 1.f * sinf(glm::radians(model.pThetaY));
+        model.subPos.z += 1.f * cosf(glm::radians(model.pThetaY));
     }
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
@@ -393,18 +481,15 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    int img_width, img_height, color_channels;
-    unsigned char* tex_bytes = stbi_load("3D/sq_texture.jpg", &img_width, &img_height, &color_channels, 0);
+    GLuint texture1 = textures.GenerateTexture("shark", true);
+    GLuint texture2 = textures.GenerateTexture("sq_texture", true);
+    GLuint texture3 = textures.GenerateTexture("whaleshark", true);
+    GLuint texture4 = textures.GenerateTexture("seaurchin", true);
+    GLuint texture5 = textures.GenerateTexture("coral", true);
+    GLuint texture6 = textures.GenerateTexture("tablecoral", true);
+    GLuint texture7 = textures.GenerateTexture("alligator", true);
+    GLuint texture8 = textures.GenerateTexture("submarine", true);
 
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_bytes);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(tex_bytes);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -952,7 +1037,7 @@ int main(void)
 
     glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 100.f);
 
-    lighting.lightDir = glm::vec3(0, -10, 0);
+    lighting.lightDir = glm::vec3(0, -1000, 0);
     lighting.lightColor = glm::vec3(1, 1, 1);
     lighting.ambientColor = glm::vec3(1, 1, 1);
     lighting.ambientStr = 0.1f;
@@ -1048,13 +1133,13 @@ int main(void)
         unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        model.Draw(shaderProgram, VAO1, fullVertexData[0], texture, 0);
-        model.Draw(shaderProgram, VAO2, fullVertexData[1], texture, 1);
-        model.Draw(shaderProgram, VAO3, fullVertexData[2], texture, 2);
-        model.Draw(shaderProgram, VAO4, fullVertexData[3], texture, 3);
-        model.Draw(shaderProgram, VAO5, fullVertexData[4], texture, 4);
-        model.Draw(shaderProgram, VAO6, fullVertexData[5], texture, 5);
-        model.Draw(shaderProgram, VAO7, fullVertexData[6], texture, 6);
+        model.Draw(shaderProgram, VAO1, fullVertexData[0], texture1, 0);
+        model.Draw(shaderProgram, VAO2, fullVertexData[1], texture2, 1);
+        model.Draw(shaderProgram, VAO3, fullVertexData[2], texture3, 2);
+        model.Draw(shaderProgram, VAO4, fullVertexData[3], texture4, 3);
+        model.Draw(shaderProgram, VAO5, fullVertexData[4], texture5, 4);
+        model.Draw(shaderProgram, VAO6, fullVertexData[5], texture6, 5);
+        model.Draw(shaderProgram, VAO7, fullVertexData[6], texture7, 6);
 
         glUseProgram(playerShaderProgram);
 
@@ -1066,7 +1151,7 @@ int main(void)
         unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
         glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture);
+        model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
