@@ -71,10 +71,10 @@ public:
     }
 
     void insertValues() {
-        // model 1
-        x.push_back(-25.0f);
-        y.push_back(-15.0f);
-        z.push_back(3.0f);
+        // shark 2
+        x.push_back(470.0f);
+        y.push_back(-180.0f);
+        z.push_back(-30.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -84,10 +84,10 @@ public:
         scaleZ.push_back(0.3f);
 
         
-        // model 2
-        x.push_back(18.0f);
-        y.push_back(-9.0f);
-        z.push_back(5.0f);
+        // squid
+        x.push_back(35.0f);
+        y.push_back(-160.0f);
+        z.push_back(80.0f);
         rotX.push_back(0.0f);
         rotY.push_back(1.0f);
         rotZ.push_back(0.0f);
@@ -96,10 +96,10 @@ public:
         scaleY.push_back(0.25f);
         scaleZ.push_back(0.25f);
 
-        // model 3
-        x.push_back(20.0f);
-        y.push_back(-15.0f);
-        z.push_back(10.0f);
+        // shark
+        x.push_back(280.0f);
+        y.push_back(-240.0f);
+        z.push_back(240.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -108,34 +108,22 @@ public:
         scaleY.push_back(0.05f);
         scaleZ.push_back(0.05f);
 
-        // model 4
-        x.push_back(-25.0f);
-        y.push_back(-30.0f);
-        z.push_back(0.0f);
+        // sea urchin
+        x.push_back(10.0f);
+        y.push_back(-300.0f);
+        z.push_back(-35.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
         theta.push_back(270.0f);
-        scaleX.push_back(0.35f);
-        scaleY.push_back(0.35f);
-        scaleZ.push_back(0.35f);
+        scaleX.push_back(0.70f);
+        scaleY.push_back(0.70f);
+        scaleZ.push_back(0.70f);
 
-        // model 5
-        x.push_back(8.0f);
-        y.push_back(-30.0f);
-        z.push_back(-5.0f);
-        rotX.push_back(1.0f);
-        rotY.push_back(0.0f);
-        rotZ.push_back(0.0f);
-        theta.push_back(270.0f);
-        scaleX.push_back(0.75f);
-        scaleY.push_back(0.75f);
-        scaleZ.push_back(0.75f);
-
-        // model 6
-        x.push_back(35.0f);
-        y.push_back(-30.0f);
-        z.push_back(0.0f);
+        // coral
+        x.push_back(20.0f);
+        y.push_back(-300.0f);
+        z.push_back(-25.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -144,10 +132,22 @@ public:
         scaleY.push_back(0.75f);
         scaleZ.push_back(0.75f);
 
-        // model 7
-        x.push_back(-16.0f);
-        y.push_back(-8.0f);
-        z.push_back(0.0f);
+        // table coral
+        x.push_back(90.0f);
+        y.push_back(-300.0f);
+        z.push_back(75.0f);
+        rotX.push_back(1.0f);
+        rotY.push_back(0.0f);
+        rotZ.push_back(0.0f);
+        theta.push_back(270.0f);
+        scaleX.push_back(0.75f);
+        scaleY.push_back(0.75f);
+        scaleZ.push_back(0.75f);
+
+        // alligator
+        x.push_back(110.0f);
+        y.push_back(-30.0f);
+        z.push_back(-80.0f);
         rotX.push_back(1.0f);
         rotY.push_back(0.0f);
         rotZ.push_back(0.0f);
@@ -177,7 +177,17 @@ public:
     float specStr;
     float specPhong;
 
-    void GenerateDirLight(GLuint shaderProgram, glm::vec3 cameraPos) {
+    glm::vec3 lightPos;
+
+    glm::vec3 subLightColor;
+
+    float subAmbientStr;
+    glm::vec3 subAmbientColor;
+
+    float subSpecStr;
+    float subSpecPhong;
+
+    void GenerateLight(GLuint shaderProgram, glm::vec3 cameraPos) {
         unsigned lightDirLoc = glGetUniformLocation(shaderProgram, "lightDirection");
         glUniform3fv(lightDirLoc, 1, glm::value_ptr(lightDir));
 
@@ -199,21 +209,25 @@ public:
         unsigned int specPhongLoc = glGetUniformLocation(shaderProgram, "specPhong");
         glUniform1f(specPhongLoc, specPhong);
 
+        unsigned int pointLightPosLoc = glGetUniformLocation(shaderProgram, "pointLightPos");
+        glUniform3fv(pointLightPosLoc, 1, glm::value_ptr(lightPos));
+
+        unsigned int pointLightColorLoc = glGetUniformLocation(shaderProgram, "pointLightColor");
+        glUniform3fv(pointLightColorLoc, 1, glm::value_ptr(subLightColor));
+
+        unsigned int pointAmbientStrLoc = glGetUniformLocation(shaderProgram, "pointAmbientStr");
+        glUniform1f(pointAmbientStrLoc, subAmbientStr);
+
+        unsigned int pointAmbientColorLoc = glGetUniformLocation(shaderProgram, "pointAmbientColor");
+        glUniform3fv(pointAmbientColorLoc, 1, glm::value_ptr(subAmbientColor));
+
+        unsigned int pointSpecStrLoc = glGetUniformLocation(shaderProgram, "pointSpecStr");
+        glUniform1f(pointSpecStrLoc, subSpecStr);
+
+        unsigned int pointSpecPhongLoc = glGetUniformLocation(shaderProgram, "pointSpecPhong");
+        glUniform1f(pointSpecPhongLoc, subSpecPhong);
+
     }
-
-    //void GenerateDirectionLight(GLuint shaderProgram) {
-    //    unsigned lightPosLoc = glGetUniformLocation(shaderProgram, "lightPosDir");
-    //    glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
-
-    //    unsigned lightColorLoc = glGetUniformLocation(shaderProgram, "lightColorDir");
-    //    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
-
-    //    unsigned int ambientStrLoc = glGetUniformLocation(shaderProgram, "ambientStrDir");
-    //    glUniform1f(ambientStrLoc, ambientStr);
-
-    //    unsigned int ambientColorLoc = glGetUniformLocation(shaderProgram, "ambientColorDir");
-    //    glUniform3fv(ambientColorLoc, 1, glm::value_ptr(ambientColor));
-    //}
 };
 
 class Shaders {
@@ -321,38 +335,38 @@ const float cameraSpeed = 0.5f;
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_A) {
         model.pThetaY += 3.f;
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_D) {
         model.pThetaY -= 3.f;
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        model.subPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
-        model.subPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
+    if (key == GLFW_KEY_W) {
+        model.subPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
+        model.subPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
 
-        cameraPos.x -= (0.5f * sinf(glm::radians(model.pThetaY)));
-        cameraPos.z -= (0.5f * cosf(glm::radians(model.pThetaY)));
+        cameraPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
+        cameraPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        model.subPos.x += (0.5f * sinf(glm::radians(model.pThetaY)));
-        model.subPos.z += (0.5f * cosf(glm::radians(model.pThetaY)));
+    if (key == GLFW_KEY_S) {
+        model.subPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
+        model.subPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
 
-        cameraPos.x += (0.5f * sinf(glm::radians(model.pThetaY)));
-        cameraPos.z += (0.5f * cosf(glm::radians(model.pThetaY)));
+        cameraPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
+        cameraPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
     }
 
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS && model.subPos.y < 0.1f) {
-        model.subPos.y += 0.1f;
-        cameraPos.y += 0.1f;
+    if (key == GLFW_KEY_Q && model.subPos.y < 0.1f) {
+        model.subPos.y += 0.25f;
+        cameraPos.y += 0.25f;
     }
 
-    if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-        model.subPos.y -= 0.1f;
-        cameraPos.y -= 0.1f;
+    if (key == GLFW_KEY_E) {
+        model.subPos.y -= 0.25f;
+        cameraPos.y -= 0.25f;
     }
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
@@ -1003,14 +1017,22 @@ int main(void)
 
     model.insertValues();
 
-    glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 100.f);
+    // PAPALITAN SA DULO
+    glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 500.f);
 
     lighting.lightDir = glm::vec3(0, -1, 0);
     lighting.lightColor = glm::vec3(1, 1, 1);
     lighting.ambientColor = glm::vec3(1, 1, 1);
-    lighting.ambientStr = 0.1f;
+    lighting.ambientStr = 0.01f;
     lighting.specStr = 0.1f;
     lighting.specPhong = 16.0f;
+    
+    lighting.lightPos = cameraPos;
+    lighting.subLightColor = glm::vec3(1, 1, 1);
+    lighting.subAmbientColor = glm::vec3(1, 1, 1);
+    lighting.subAmbientStr = 0.1f;
+    lighting.subSpecStr = 0.1f;
+    lighting.subSpecPhong = 16.0f;
 
     cameraPos = glm::vec3(0.f, 3.f, 0.f);
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
@@ -1031,6 +1053,8 @@ int main(void)
 
         //Construct the Camera Orientation Matrix
         glm::mat4 cameraOrientation = glm::mat4(1.f);
+
+        lighting.lightPos = cameraPos;
 
         if (isFirstPerson) {
 
@@ -1097,7 +1121,7 @@ int main(void)
 
         glUseProgram(shaderProgram);
 
-        lighting.GenerateDirLight(shaderProgram, cameraPos);
+        lighting.GenerateLight(shaderProgram, cameraPos);
 
         unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
@@ -1117,7 +1141,7 @@ int main(void)
 
         viewMatrix = cameraOrientation * cameraPosMatrix;
 
-        lighting.GenerateDirLight(playerShaderProgram, cameraPos);
+        lighting.GenerateLight(playerShaderProgram, cameraPos);
 
         unsigned int pProjectionLoc = glGetUniformLocation(playerShaderProgram, "projection");
         glUniformMatrix4fv(pProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
