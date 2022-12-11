@@ -327,7 +327,7 @@ glm::vec3 direction;
 float pTheta = 0.f;
 
 bool first = true;
-bool isFirstPerson = true;
+bool isThirdPerson = true;
 
 float delayTime = 0;
 
@@ -371,11 +371,15 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
         if ((clock() / CLOCKS_PER_SEC) > delayTime) {
-            if (isFirstPerson) {
-                isFirstPerson = false;
+            if (isThirdPerson) {
+                isThirdPerson = false;
+                cameraPos.y = cameraPos.y - 3.0f;
             }
-            else
-                isFirstPerson = true;
+            else {
+                isThirdPerson = true;
+                cameraPos.y = cameraPos.y + 3.0f;
+            }
+                
 
             delayTime = clock() / CLOCKS_PER_SEC + 3;   // 3 secs delay
         }
@@ -384,39 +388,41 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 }
 
 void Mouse_Callback(GLFWwindow* window, double xpos, double ypos) {
-    //if mouse enters the window, set last position to current position
-    if (first)
-    {
+    if (isThirdPerson) {
+        //if mouse enters the window, set last position to current position
+        if (first)
+        {
+            lastX = xpos;
+            lastY = ypos;
+            first = false;
+        }
+
+        //get the offset of the x and y
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+
         lastX = xpos;
         lastY = ypos;
-        first = false;
+
+        //apply sensitivity to offset
+        const float sensitivity = 0.1f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        //get the X, Y, and Z values of the direction using euler angles
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        //Normalize direction vector and store to F
+        F = glm::normalize(direction);
     }
-
-    //get the offset of the x and y
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    //apply sensitivity to offset
-    const float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    //get the X, Y, and Z values of the direction using euler angles
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    //Normalize direction vector and store to F
-    F = glm::normalize(direction);
 };
 
 int main(void)
@@ -438,7 +444,7 @@ int main(void)
         return -1;
     }
 
-    std::string path[8] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj", "3D/submarine.obj"};
+    std::string path[9] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj", "3D/submarine.obj", "3D/sonar.obj"};
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
@@ -591,9 +597,9 @@ int main(void)
 
     GLuint skybox_shaderProg = shaders.GenerateShaders("skybox");
     
-    std::vector<GLfloat> fullVertexData[8];
+    std::vector<GLfloat> fullVertexData[9];
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < 9; j++) {
         // LOADING OBJECTS
         bool success = tinyobj::LoadObj(
             &attributes,
@@ -964,6 +970,56 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    GLuint SVAO, SVBO;
+    glGenVertexArrays(1, &SVAO);
+    glGenBuffers(1, &SVBO);
+
+    // Sonar
+    glBindVertexArray(SVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, SVBO);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(GL_FLOAT)* fullVertexData[8].size(),
+        fullVertexData[8].data(),
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    normPtr = 3 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)normPtr
+    );
+
+    uvPtr = 6 * sizeof(GLfloat);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)uvPtr
+    );
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
 
     /*  PLAYER VAO AND VBO */
     GLuint PVAO, PVBO;
@@ -1038,7 +1094,7 @@ int main(void)
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
     glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
-    glm::vec3 cameraCenter = glm::vec3(0, 0.0f, 0);
+    glm::vec3 cameraCenter = glm::vec3(0.1f, 0.1f, 0.1f);
     F = glm::vec3(cameraCenter - cameraPos);
     F = glm::normalize(F);
 
@@ -1056,7 +1112,7 @@ int main(void)
 
         lighting.lightPos = cameraPos;
 
-        if (isFirstPerson) {
+        if (isThirdPerson) {
 
             /*cameraPos = glm::vec3(0, 0, 10.f);*/
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
@@ -1077,14 +1133,41 @@ int main(void)
 
             viewMatrix = cameraOrientation * cameraPosMatrix;
 
-            /*viewMatrix = glm::lookAt(cameraPos, F, glm::vec3(0.0f, 1.0f, 0.0f));*/
+            glUseProgram(playerShaderProgram);
+
+            lighting.GenerateLight(playerShaderProgram, cameraPos);
+
+            unsigned int pProjectionLoc = glGetUniformLocation(playerShaderProgram, "projection");
+            glUniformMatrix4fv(pProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+            unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
+            glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+            model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8);
 
         }
         else {
-            //cameraPos = glm::vec3(x_mod, 0, 10.f);
-            //cameraCenter = glm::vec3(subx, suby, subz);
-            //glm::vec3 worldUp2 = glm::vec3(x_mod, 1.0f, 0);
-            //viewMatrix = glm::lookAt(cameraPos, cameraCenter, worldUp2);
+            cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+
+            //F = glm::vec3(model.subPos.x - (1.0f * sinf(glm::radians(model.pThetaY))), model.subPos.y, model.subPos.z - (1.0f * cosf(glm::radians(model.pThetaY))));
+            F = glm::vec3(model.subPos.x, model.subPos.y, model.subPos.z);
+            F = glm::normalize(F);
+            R = glm::normalize(glm::cross(F, worldUp));
+            U = glm::normalize(glm::cross(R, F));
+
+            cameraOrientation[0][0] = R.x;
+            cameraOrientation[1][0] = R.y;
+            cameraOrientation[2][0] = R.z;
+
+            cameraOrientation[0][1] = U.x;
+            cameraOrientation[1][1] = U.y;
+            cameraOrientation[2][1] = U.z;
+
+            cameraOrientation[0][2] = -F.x;
+            cameraOrientation[1][2] = -F.y;
+            cameraOrientation[2][2] = -F.z;
+
+            viewMatrix = cameraOrientation * cameraPosMatrix;
         }
         
 
@@ -1137,19 +1220,7 @@ int main(void)
         model.Draw(shaderProgram, VAO6, fullVertexData[5], texture6, 5);
         model.Draw(shaderProgram, VAO7, fullVertexData[6], texture7, 6);
 
-        glUseProgram(playerShaderProgram);
-
-        viewMatrix = cameraOrientation * cameraPosMatrix;
-
-        lighting.GenerateLight(playerShaderProgram, cameraPos);
-
-        unsigned int pProjectionLoc = glGetUniformLocation(playerShaderProgram, "projection");
-        glUniformMatrix4fv(pProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
-        unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
-        glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-
-        model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8);
+        
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
