@@ -372,7 +372,13 @@ bool isThirdPerson = true;
 
 float delayTime = 0;
 
+int lightCycle = 0;
+
 const float cameraSpeed = 0.5f;
+
+glm::mat4 projection_matrix;
+float screenWidth = 1200.f;
+float screenHeight = 1200.f;
 
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
 
@@ -414,11 +420,13 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
         
             if (isThirdPerson) {
                 isThirdPerson = false;
+                projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 500.f);
                 cameraPos.y = cameraPos.y - 3.0f;
                 
             }
             else {
                 isThirdPerson = true;
+                projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 150.f);
                 model.subPos.y = cameraPos.y;
                 cameraPos.y = cameraPos.y + 3.0f;
                 model.subPos.x = cameraPos.x;
@@ -426,6 +434,28 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
             }
         
         
+    }
+
+    if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+        if (lightCycle + 1 == 3) {
+            lightCycle = 0;
+        }
+        else {
+            lightCycle++;
+        }
+
+        if (lightCycle == 0) {
+            lighting.subAmbientStr = 0.1f;
+            lighting.subSpecStr = 0.1f;
+        }
+        else if (lightCycle == 1) {
+            lighting.subAmbientStr = 1.0f;
+            lighting.subSpecStr = 0.5f;
+        }
+        else if (lightCycle == 2) {
+            lighting.subAmbientStr = 3.0f;
+            lighting.subSpecStr = 1.0f;
+        }
     }
 }
 
@@ -474,9 +504,6 @@ int main(void)
     /* Initialize the library */
     if (!glfwInit())
         return -1;
-
-    float screenWidth = 1200.f;
-    float screenHeight = 1200.f;
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(screenWidth, screenHeight, "Jerez - Llorca - Tee: GRAPHIX Machine Project Group 6", NULL, NULL);
@@ -1065,8 +1092,7 @@ int main(void)
 
     model.insertValues();
 
-    // PAPALITAN SA DULO
-    glm::mat4 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 500.f);
+    projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 200.f);
 
     lighting.lightDir = glm::vec3(0, -1, 0);
     lighting.lightColor = glm::vec3(1, 1, 1);
