@@ -364,11 +364,15 @@ float subz = cameraPos.z + F.z * 4;
 
 //instantiate direction vector
 glm::vec3 direction;
+glm::vec3 worldUp;
 
 float pTheta = 0.f;
 
 bool first = true;
 bool isThirdPerson = true;
+bool isBirdsEye = false;
+
+bool birdFirst = true;
 
 float delayTime = 0;
 
@@ -383,27 +387,51 @@ float screenHeight = 1200.f;
 void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mods) {
 
     if (key == GLFW_KEY_A) {
-        model.pThetaY += 3.f;
+        if (isBirdsEye)
+            ;
+        else {
+            model.pThetaY += 3.f;
+        }
     }
 
     if (key == GLFW_KEY_D) {
-        model.pThetaY -= 3.f;
+        if (isBirdsEye)
+            ;
+        else {
+            model.pThetaY -= 3.f;
+        }
+
     }
 
     if (key == GLFW_KEY_W) {
-        model.subPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
-        model.subPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
 
-        cameraPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
-        cameraPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
+        if (isBirdsEye) {
+            //F.z += 0.1;
+            F.y += 0.1;
+            F.x+=0.1;
+        }
+            
+        else {
+            model.subPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
+            model.subPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
+
+            cameraPos.x -= (1.0f * sinf(glm::radians(model.pThetaY)));
+            cameraPos.z -= (1.0f * cosf(glm::radians(model.pThetaY)));
+        }
+
+
     }
 
     if (key == GLFW_KEY_S) {
-        model.subPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
-        model.subPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
+        if (isBirdsEye)
+            ;
+        else {
+            model.subPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
+            model.subPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
 
-        cameraPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
-        cameraPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
+            cameraPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
+            cameraPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
+        }
     }
 
     if (key == GLFW_KEY_Q && model.subPos.y < 0.1f) {
@@ -416,7 +444,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
         cameraPos.y -= 0.25f;
     }
 
-    if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS && !isBirdsEye) {
         
             if (isThirdPerson) {
                 isThirdPerson = false;
@@ -435,6 +463,19 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
         
         
     }
+
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+        if (isBirdsEye) {
+            isBirdsEye = false;
+            cameraPos.y = cameraPos.y - 5.0f;
+        }
+        else {
+            isBirdsEye = true;
+            birdFirst = true;
+            cameraPos.y = cameraPos.y + 5.0f;
+        }
+    }
+
 
     if (key == GLFW_KEY_F && action == GLFW_PRESS) {
         if (lightCycle + 1 == 3) {
@@ -460,7 +501,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 }
 
 void Mouse_Callback(GLFWwindow* window, double xpos, double ypos) {
-    if (isThirdPerson) {
+    if (isThirdPerson && !isBirdsEye) {
         //if mouse enters the window, set last position to current position
         if (first)
         {
@@ -1111,8 +1152,8 @@ int main(void)
     cameraPos = glm::vec3(0.f, 3.f, 0.f);
     glm::mat4 cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
 
-    glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
-    glm::vec3 cameraCenter = glm::vec3(0.1f, 0.1f, 0.1f);
+    worldUp = glm::vec3(0, 1.0f, 0);
+    cameraCenter = glm::vec3(0.1f, 0.1f, 0.1f);
     F = glm::vec3(cameraCenter - cameraPos);
     F = glm::normalize(F);
 
@@ -1120,6 +1161,7 @@ int main(void)
     /* Loop until the user closes the window */
      while (!glfwWindowShouldClose(window))
     {
+         //printf("\nF(x,y,z)= %.2f,%.2f,%.2f", F.x, F.y, F.z);
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1130,7 +1172,7 @@ int main(void)
 
         lighting.lightPos = cameraPos;
 
-        if (isThirdPerson) {
+        if (isThirdPerson && !isBirdsEye) {
             glDisable(GL_BLEND);
             /*cameraPos = glm::vec3(0, 0, 10.f);*/
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
@@ -1163,6 +1205,46 @@ int main(void)
             model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8, normals);
 
         }
+
+        else if (isBirdsEye) {
+            
+            if (birdFirst) {
+                birdFirst = false;
+                F = glm::vec3(-1, -5, 0);
+            }
+
+            cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
+            
+            F = glm::normalize(F);
+            R = glm::normalize(glm::cross(F, worldUp));
+            U = glm::normalize(glm::cross(R, F));
+
+            cameraOrientation[0][0] = R.x;
+            cameraOrientation[1][0] = R.y;
+            cameraOrientation[2][0] = R.z;
+
+            cameraOrientation[0][1] = U.x;
+            cameraOrientation[1][1] = U.y;
+            cameraOrientation[2][1] = U.z;
+
+            cameraOrientation[0][2] = -F.x;
+            cameraOrientation[1][2] = -F.y;
+            cameraOrientation[2][2] = -F.z;
+
+            viewMatrix = cameraOrientation * cameraPosMatrix;
+
+            glUseProgram(playerShaderProgram);
+
+            lighting.GenerateLight(playerShaderProgram, cameraPos);
+
+            unsigned int pProjectionLoc = glGetUniformLocation(playerShaderProgram, "projection");
+            glUniformMatrix4fv(pProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+            unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
+            glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+            model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8, normals);
+        }
+
         else {
 
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
