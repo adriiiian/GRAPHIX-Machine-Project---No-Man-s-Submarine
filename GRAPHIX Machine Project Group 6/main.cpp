@@ -469,7 +469,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         if (isBirdsEye) {
             isBirdsEye = false;
-            cameraPos.y = cameraPos.y - 50.0f;
+            //cameraPos.y = cameraPos.y - 50.0f;
             if(isThirdPerson)
                 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 150.f);
             else
@@ -479,8 +479,15 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 
             isBirdsEye = true;
             birdFirst = true;
-            cameraPos.y = cameraPos.y + 50.0f;
-            //projection_matrix = glm::ortho(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 1000.0f);
+            //cameraPos.y = cameraPos.y + 50.0f;
+            float ratio_size_per_depth = glm::radians(60.f);
+            float distance = glm::length(cameraPos - model.subPos);
+            float aspectRatio = (screenHeight/100) / (screenWidth/100);
+            float top= distance * tan(ratio_size_per_depth);
+            float right = top * aspectRatio;
+
+            projection_matrix = glm::ortho(-300.f, 300.f, -300.f, 300.f, -1000.0f, 1000.f);
+            //projection_matrix = glm::ortho(-(screenHeight / screenWidth), screenHeight / screenWidth, 0.1f, 1000.0f);
         }
     }
 
@@ -584,6 +591,8 @@ int main(void)
     glfwMakeContextCurrent(window);
     //Initialize GLAD
     gladLoadGL();
+
+    glViewport(0, 0, screenWidth, screenHeight);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -1142,6 +1151,7 @@ int main(void)
     model.insertValues();
 
     projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 200.f);
+    glm::mat4 skybox_projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 200.f);
 
     lighting.lightDir = glm::vec3(0, -1, 0);
     lighting.lightColor = glm::vec3(1, 1, 1);
@@ -1215,12 +1225,12 @@ int main(void)
         }
 
         else if (isBirdsEye) {
-            
+            glDisable(GL_BLEND);
             if (birdFirst) {
                 birdFirst = false;
                 F = glm::vec3(-1, -5, 0);
-                Birdyaw = model.pThetaY;
-                Birdpitch = model.pThetaY;
+                Birdyaw = -89.0;
+                Birdpitch = -89.0;
             }
             else {
                 F.x = cos(glm::radians(Birdyaw)) * cos(glm::radians(Birdpitch));
@@ -1306,7 +1316,7 @@ int main(void)
         glUniformMatrix4fv(sky_projectionLoc,
             1,
             GL_FALSE,
-            glm::value_ptr(projection_matrix));
+            glm::value_ptr(skybox_projection_matrix));
 
         unsigned int sky_viewLoc = glGetUniformLocation(skybox_shaderProg, "view");
         glUniformMatrix4fv(sky_viewLoc,
