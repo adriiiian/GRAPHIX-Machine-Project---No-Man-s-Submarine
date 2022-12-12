@@ -439,11 +439,13 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_Q && model.subPos.y < 0.1f) {
         model.subPos.y += 0.25f;
         cameraPos.y += 0.25f;
+        printf("Current Depth: %.2f\n", model.subPos.y);
     }
 
     if (key == GLFW_KEY_E) {
         model.subPos.y -= 0.25f;
         cameraPos.y -= 0.25f;
+        printf("Current Depth: %.2f\n", model.subPos.y);
     }
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS && !isBirdsEye) {
