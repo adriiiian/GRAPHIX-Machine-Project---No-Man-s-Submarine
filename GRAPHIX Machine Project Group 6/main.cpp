@@ -370,7 +370,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     }
 
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-        if ((clock() / CLOCKS_PER_SEC) > delayTime) {
+        
             if (isThirdPerson) {
                 isThirdPerson = false;
                 cameraPos.y = cameraPos.y - 3.0f;
@@ -383,8 +383,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
                 model.subPos.x = cameraPos.x;
                 model.subPos.z = cameraPos.z;
             }
-            delayTime = clock() / CLOCKS_PER_SEC + 3;   // 3 secs delay
-        }
+        
         
     }
 }
