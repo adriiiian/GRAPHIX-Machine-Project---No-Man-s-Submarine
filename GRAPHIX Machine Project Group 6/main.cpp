@@ -471,7 +471,6 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         if (isBirdsEye) {
             isBirdsEye = false;
-            //cameraPos.y = cameraPos.y - 50.0f;
             if(isThirdPerson)
                 projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 150.f);
             else
@@ -481,15 +480,7 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 
             isBirdsEye = true;
             birdFirst = true;
-            //cameraPos.y = cameraPos.y + 50.0f;
-            float ratio_size_per_depth = glm::radians(60.f);
-            float distance = glm::length(cameraPos - model.subPos);
-            float aspectRatio = (screenHeight/100) / (screenWidth/100);
-            float top= distance * tan(ratio_size_per_depth);
-            float right = top * aspectRatio;
-
-            projection_matrix = glm::ortho(-300.f, 300.f, -300.f, 300.f, -1000.0f, 1000.f);
-            //projection_matrix = glm::ortho(-(screenHeight / screenWidth), screenHeight / screenWidth, 0.1f, 1000.0f);
+            projection_matrix = glm::ortho(-500.f, 500.f, -500.f, 500.f, -1000.0f, 1000.f);
         }
     }
 
@@ -1181,7 +1172,6 @@ int main(void)
     /* Loop until the user closes the window */
      while (!glfwWindowShouldClose(window))
     {
-         //printf("\nF(x,y,z)= %.2f,%.2f,%.2f", F.x, F.y, F.z);
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1194,7 +1184,6 @@ int main(void)
 
         if (isThirdPerson && !isBirdsEye) {
             glDisable(GL_BLEND);
-            /*cameraPos = glm::vec3(0, 0, 10.f);*/
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             R = glm::normalize(glm::cross(F, worldUp));
             U = glm::normalize(glm::cross(R, F));
@@ -1278,7 +1267,6 @@ int main(void)
 
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             F = glm::vec3(-sinf(glm::radians(model.pThetaY)), 0, -cosf(glm::radians(model.pThetaY)));
-            //F = glm::vec3(model.subPos.x, model.subPos.y, model.subPos.z);
             F = glm::normalize(F);
             R = glm::normalize(glm::cross(F, worldUp));
             U = glm::normalize(glm::cross(R, F));
@@ -1377,6 +1365,10 @@ int main(void)
     glDeleteBuffers(1, &VBO6);
     glDeleteVertexArrays(1, &VAO7);
     glDeleteBuffers(1, &VBO7);
+    glDeleteVertexArrays(1, &PVAO);
+    glDeleteBuffers(1, &PVBO);
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteBuffers(1, &skyboxVBO);
 
     glfwTerminate();
     return 0;
