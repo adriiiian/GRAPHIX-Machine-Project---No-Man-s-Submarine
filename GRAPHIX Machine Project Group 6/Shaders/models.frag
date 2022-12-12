@@ -20,6 +20,7 @@ uniform float specPhong;
 uniform vec3 pointLightPos;
 uniform vec3 pointLightColor;
 
+uniform float pointAmbientStr;
 uniform vec3 pointAmbientColor;
 
 uniform float pointSpecStr;
@@ -80,19 +81,8 @@ void main(){
 	pointDiffuse *= intensity;
 	pointAmbientCol *= intensity;
 
-	pointSpecCol *= texture(tex0, texCoord);
-	pointDiffuse *= texture(tex0, texCoord);
-	pointAmbientCol *= texture(tex0, texCoord);
-
-	specCol *= texture(tex0, texCoord);
-	diffuse *= texture(tex0, texCoord);
-	ambientCol *= texture(tex0, texCoord);
-
 	vec3 result = specCol + diffuse + ambientCol;
 	result += pointSpecCol + pointDiffuse + pointAmbientCol;
 
-	//FragColor = vec4(pointSpecCol + pointDiffuse + pointAmbientCol) * vec4(specCol + diffuse + ambientCol, 1.0) * texture(tex0, texCoord);
-	//FragColor = vec4(specCol + diffuse + ambientCol, 1.0) * texture(tex0, texCoord);
-	//FragColor = (vec4(pointSpecCol + pointDiffuse + pointAmbientCol) * texture(tex0, texCoord))  + (vec4(specCol + diffuse + ambientCol, 1.0) * texture(tex0, texCoord));
-	FragColor = vec4(result, 1.0);
+	FragColor = vec4(result, 1.0) * texture(tex0, texCoord);
 }

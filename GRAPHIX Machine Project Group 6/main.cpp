@@ -49,8 +49,9 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
     }
 
-    void DrawPlayer(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture) {
+    void DrawPlayer(GLuint shaderProgram, GLuint VAO, std::vector<GLfloat> fullVertexData, GLuint texture, GLuint normals) {
         unsigned int transformationLoc = glGetUniformLocation(shaderProgram, "transform");
+        glActiveTexture(GL_TEXTURE0);
         GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
 
 
@@ -61,11 +62,16 @@ public:
         transformation_matrix[0] = glm::rotate(transformation_matrix[0], glm::radians(pThetaY), glm::normalize(glm::vec3(0, 0, 1)));
         transformation_matrix[0] = glm::scale(transformation_matrix[0], glm::vec3(pScaleX, pScaleY, pScaleZ));
 
-        glBindVertexArray(VAO);
-        glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[0]));
-
         glBindTexture(GL_TEXTURE_2D, texture);
         glUniform1i(tex0Address, 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        GLuint tex1Address = glGetUniformLocation(shaderProgram, "norm_tex");
+        glBindTexture(GL_TEXTURE_2D, normals);
+        glUniform1i(tex1Address, 1);
+
+        glBindVertexArray(VAO);
+        glUniformMatrix4fv(transformationLoc, 1, GL_FALSE, glm::value_ptr(transformation_matrix[0]));
 
         glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
     }
@@ -302,6 +308,41 @@ public:
 
         return texture;
     }
+
+    GLuint GenerateNormals(std::string filename, bool isJpg) {
+        GLuint texture;
+        if (isJpg) {
+            int img_width, img_height, color_channels;
+            std::string file = "3D/" + filename + ".jpg";
+            unsigned char* tex_bytes = stbi_load(file.data(), &img_width, &img_height, &color_channels, 0);
+
+            glGenTextures(1, &texture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_bytes);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+            stbi_image_free(tex_bytes);
+        }
+        else {
+            int img_width, img_height, color_channels;
+            std::string file = "3D/" + filename + ".png";
+            unsigned char* tex_bytes = stbi_load(file.data(), &img_width, &img_height, &color_channels, 0);
+
+            glGenTextures(1, &texture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_bytes);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+            stbi_image_free(tex_bytes);
+        }
+
+
+        return texture;
+    }
     
 };
 
@@ -445,7 +486,7 @@ int main(void)
         return -1;
     }
 
-    std::string path[9] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj", "3D/submarine.obj", "3D/sonar.obj"};
+    std::string path[8] = { "3D/shark2.obj", "3D/squid.obj", "3D/shark.obj", "3D/seaurchin.obj", "3D/coral.obj", "3D/tablecoral.obj", "3D/alligatorgar.obj", "3D/submarine.obj"};
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warning, error;
@@ -478,6 +519,7 @@ int main(void)
     GLuint texture6 = textures.GenerateTexture("tablecoral", true);
     GLuint texture7 = textures.GenerateTexture("alligator", true);
     GLuint texture8 = textures.GenerateTexture("submarine", true);
+    GLuint normals = textures.GenerateNormals("submarine_normal", true);
 
 
     glEnable(GL_DEPTH_TEST);
@@ -600,7 +642,7 @@ int main(void)
     
     std::vector<GLfloat> fullVertexData[9];
 
-    for (int j = 0; j < 9; j++) {
+    for (int j = 0; j < 8; j++) {
         // LOADING OBJECTS
         bool success = tinyobj::LoadObj(
             &attributes,
@@ -925,7 +967,7 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // OBJ6
+    // OBJ7
     glBindVertexArray(VAO7);
     glBindBuffer(GL_ARRAY_BUFFER, VBO7);
     glBufferData(
@@ -970,57 +1012,6 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    GLuint SVAO, SVBO;
-    glGenVertexArrays(1, &SVAO);
-    glGenBuffers(1, &SVBO);
-
-    // Sonar
-    glBindVertexArray(SVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, SVBO);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(GL_FLOAT)* fullVertexData[8].size(),
-        fullVertexData[8].data(),
-        GL_STATIC_DRAW
-    );
-
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        8 * sizeof(GL_FLOAT),
-        (void*)0
-    );
-
-    normPtr = 3 * sizeof(GLfloat);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        8 * sizeof(GL_FLOAT),
-        (void*)normPtr
-    );
-
-    uvPtr = 6 * sizeof(GLfloat);
-    glVertexAttribPointer(
-        2,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        8 * sizeof(GL_FLOAT),
-        (void*)uvPtr
-    );
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
 
     /*  PLAYER VAO AND VBO */
     GLuint PVAO, PVBO;
@@ -1143,10 +1134,7 @@ int main(void)
 
             unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
             glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-            model.pScaleX = 0.001f;
-            model.pScaleY = 0.001f;
-            model.pScaleZ = 0.001f;
-            model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8);
+            model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8, normals);
 
         }
         else {
