@@ -355,6 +355,7 @@ float y_mod = 0.f;
 float z_mod = 0.f;
 float lastX = 300, lastY = 300;
 float pitch = 0.0f, yaw = 0.0f;
+float Birdpitch = 0.0f, Birdyaw = 0.0f;
 
 glm::vec3 F, R, U;
 glm::vec3 cameraPos, cameraCenter;
@@ -388,15 +389,16 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 
     if (key == GLFW_KEY_A) {
         if (isBirdsEye)
-            ;
+            Birdyaw -= 1;
         else {
             model.pThetaY += 3.f;
         }
     }
 
     if (key == GLFW_KEY_D) {
-        if (isBirdsEye)
-            ;
+        if (isBirdsEye) {
+            Birdyaw += 1;
+        }
         else {
             model.pThetaY -= 3.f;
         }
@@ -406,9 +408,8 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_W) {
 
         if (isBirdsEye) {
-            //F.z += 0.1;
-            F.y += 0.1;
-            F.x+=0.1;
+            Birdpitch += 1;
+            
         }
             
         else {
@@ -423,8 +424,9 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     }
 
     if (key == GLFW_KEY_S) {
-        if (isBirdsEye)
-            ;
+        if (isBirdsEye) {
+            Birdpitch -= 1;
+        }
         else {
             model.subPos.x += (1.0f * sinf(glm::radians(model.pThetaY)));
             model.subPos.z += (1.0f * cosf(glm::radians(model.pThetaY)));
@@ -467,12 +469,18 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
     if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         if (isBirdsEye) {
             isBirdsEye = false;
-            cameraPos.y = cameraPos.y - 5.0f;
+            cameraPos.y = cameraPos.y - 50.0f;
+            if(isThirdPerson)
+                projection_matrix = glm::perspective(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 150.f);
+            else
+                projection_matrix = glm::perspective(glm::radians(60.f), screenHeight /screenWidth, 0.1f, 500.f);
         }
         else {
+
             isBirdsEye = true;
             birdFirst = true;
-            cameraPos.y = cameraPos.y + 5.0f;
+            cameraPos.y = cameraPos.y + 50.0f;
+            //projection_matrix = glm::ortho(glm::radians(60.f), screenHeight / screenWidth, 0.1f, 1000.0f);
         }
     }
 
@@ -1211,8 +1219,17 @@ int main(void)
             if (birdFirst) {
                 birdFirst = false;
                 F = glm::vec3(-1, -5, 0);
+                Birdyaw = model.pThetaY;
+                Birdpitch = model.pThetaY;
             }
+            else {
+                F.x = cos(glm::radians(Birdyaw)) * cos(glm::radians(Birdpitch));
+                F.y = sin(glm::radians(Birdpitch));
+                F.z = sin(glm::radians(Birdyaw)) * cos(glm::radians(Birdpitch));
+            }
+            
 
+            
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             
             F = glm::normalize(F);
@@ -1326,7 +1343,6 @@ int main(void)
         model.Draw(shaderProgram, VAO6, fullVertexData[5], texture6, 5);
         model.Draw(shaderProgram, VAO7, fullVertexData[6], texture7, 6);
 
-        
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
