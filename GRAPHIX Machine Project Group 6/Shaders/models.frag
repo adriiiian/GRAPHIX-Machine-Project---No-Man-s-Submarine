@@ -20,7 +20,6 @@ uniform float specPhong;
 uniform vec3 pointLightPos;
 uniform vec3 pointLightColor;
 
-uniform float pointAmbientStr;
 uniform vec3 pointAmbientColor;
 
 uniform float pointSpecStr;

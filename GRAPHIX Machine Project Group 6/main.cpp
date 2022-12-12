@@ -374,10 +374,14 @@ void Key_Callback(GLFWwindow* window, int key, int scanCode, int action, int mod
             if (isThirdPerson) {
                 isThirdPerson = false;
                 cameraPos.y = cameraPos.y - 3.0f;
+                
             }
             else {
                 isThirdPerson = true;
+                model.subPos.y = cameraPos.y;
                 cameraPos.y = cameraPos.y + 3.0f;
+                model.subPos.x = cameraPos.x;
+                model.subPos.z = cameraPos.z;
             }
             delayTime = clock() / CLOCKS_PER_SEC + 3;   // 3 secs delay
         }
@@ -1111,7 +1115,7 @@ int main(void)
         lighting.lightPos = cameraPos;
 
         if (isThirdPerson) {
-
+            glDisable(GL_BLEND);
             /*cameraPos = glm::vec3(0, 0, 10.f);*/
             cameraPosMatrix = glm::translate(glm::mat4(1.0f), cameraPos * -1.f);
             R = glm::normalize(glm::cross(F, worldUp));
@@ -1140,7 +1144,9 @@ int main(void)
 
             unsigned int pViewLoc = glGetUniformLocation(playerShaderProgram, "view");
             glUniformMatrix4fv(pViewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-
+            model.pScaleX = 0.001f;
+            model.pScaleY = 0.001f;
+            model.pScaleZ = 0.001f;
             model.DrawPlayer(playerShaderProgram, PVAO, fullVertexData[7], texture8);
 
         }
@@ -1166,6 +1172,11 @@ int main(void)
             cameraOrientation[2][2] = -F.z;
 
             viewMatrix = cameraOrientation * cameraPosMatrix;
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_SUBTRACT);
+            glBlendColor(0.094, 1.000, 0.012, 0.733);
         }
         
 
